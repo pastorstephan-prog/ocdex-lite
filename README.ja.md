@@ -117,7 +117,7 @@ Codex app-serverはlocalhostに閉じるのが前提です。LANやpublic intern
 最初の商用Goalは、App StoreでもGitHub Marketplaceでもありません。
 
 - PWA版をGitHub公開
-- note有料記事などで、自力セットアップ用ガイドを販売
+- [note有料記事](https://note.com/ocdex_lite/n/nd69e05ae6f3c)で、自力セットアップ用ガイドを販売
 - 個別サポート、導入代行、環境別トラブル対応は初期商品に含めない
 - 安定したmobile Codex remoteが欲しい人向けに、500円の買い切り手順書を用意する
 

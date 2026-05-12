@@ -117,8 +117,8 @@ See [SECURITY.md](SECURITY.md).
 The first commercial goal is not an App Store app and not a GitHub Marketplace app. The goal is:
 
 - public PWA repository
-- Paid self-setup guide, with no individual support promise
-- a low-friction paid guide for people who want a stable mobile Codex remote
+- [Paid self-setup guide](https://note.com/ocdex_lite/n/nd69e05ae6f3c), with no individual support promise
+- a 500 JPY low-friction paid guide for people who want a stable mobile Codex remote
 
 See [docs/ocdex-lite-goal.ja.md](docs/ocdex-lite-goal.ja.md) and [docs/ocdex-lite-commercial-plan.ja.md](docs/ocdex-lite-commercial-plan.ja.md).
 

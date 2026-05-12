@@ -2,9 +2,13 @@
 
 Ocdex Liteの有料note記事は、500円の買い切り手順書として販売する。
 
+公開URL:
+
+https://note.com/ocdex_lite/n/nd69e05ae6f3c
+
 ## 商品
 
-iPhone/iPadからMacのCodexを軽く操作する: Ocdex Lite自力セットアップ完全ガイド
+iPhone/iPadからMacのCodexを軽く操作する: Ocdex Liteやさしい自力セットアップガイド
 
 ## 価格
 
@@ -28,5 +32,3 @@ iPhone/iPadからMacのCodexを軽く操作する: Ocdex Lite自力セットア�
 ## 公開方針
 
 GitHubにはOSS本体と概要を公開する。有料note本文そのものは公開リポジトリに置かない。
-
-note URLが決まったら、READMEとこのファイルにリンクを追加する。
