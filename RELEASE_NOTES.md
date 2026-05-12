@@ -1,4 +1,12 @@
-# Ocdex Lite v1.0.1
+# Ocdex Lite v1.0.2
+
+## v1.0.2
+
+Small clarity update for lightweight handoff chats.
+
+- Name automatically created lightweight handoff chats as `軽量引き継ぎ: <topic> (<old thread id>)`
+- Preserve that label in the mobile and desktop thread lists while the bridge is live
+- Add tests for handoff title extraction and thread list labels
 
 ## v1.0.1
 
