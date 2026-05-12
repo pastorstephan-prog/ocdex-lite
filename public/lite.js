@@ -264,6 +264,7 @@ async function openThread(nextThreadId) {
   setState("connecting", "履歴を読み込み中");
   try {
     const result = await apiGet(`/api/thread?thread=${encodeURIComponent(threadId)}&limit=80`);
+    if (result.name) setCurrentThreadTitle(result.name);
     renderHistory(result.history || []);
   } catch (error) {
     addEntry("error", `チャットを読めませんでした: ${error.message}`);
@@ -325,7 +326,7 @@ function connect() {
     if (msg.type === "ready") {
       const previousThreadId = threadId;
       threadId = msg.threadId || threadId;
-      setCurrentThreadTitle(threadListCache.get(threadId) || msg.threadLabel || projectTitleFromPath(msg.workdir) || "共有チャット");
+      setCurrentThreadTitle(msg.threadLabel || threadListCache.get(threadId) || projectTitleFromPath(msg.workdir) || "共有チャット");
       if (threadId && threadId !== previousThreadId) {
         visibleHistoryLimit = 20;
         threadsLoaded = false;

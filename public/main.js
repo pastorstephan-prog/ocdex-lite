@@ -834,7 +834,16 @@ function updateUrlThread() {
 }
 
 function syncReadyThread(threadId, threadLabel = "") {
-  if (!threadId || selectedThread === threadId) return;
+  if (!threadId) return;
+  if (threadLabel) {
+    const cached = threadCache.find((thread) => thread.id === threadId);
+    if (cached) cached.name = threadLabel;
+  }
+  if (selectedThread === threadId) {
+    if (threadLabel) threadTitle.textContent = presentThreadTitle(threadId, threadLabel);
+    renderThreadList();
+    return;
+  }
   savePromptDraft();
   lastHistorySignature = "";
   renderHistory([]);

@@ -626,6 +626,25 @@ function findLiveBridgeThread(threadId) {
   return Array.from(bridges.values()).find((bridge) => bridge.ready && bridge.threadId === threadId) || null;
 }
 
+function sessionThreadForId(threadId) {
+  const filePath = findSessionFileForThread(threadId);
+  if (!filePath) return null;
+  return parseSessionThreadFile(filePath, {
+    fallbackCwd: workdir,
+    fallbackName: projectTitleFromWorkdir(),
+  });
+}
+
+function threadDisplayName({ thread = null, threadId = "", history = [] } = {}) {
+  const id = thread?.id || threadId;
+  const override = id ? threadTitleOverrides.get(id) : null;
+  if (override?.name) return override.name;
+  if (thread?.name) return thread.name;
+  const sessionThread = id ? sessionThreadForId(id) : null;
+  if (sessionThread?.name) return sessionThread.name;
+  return threadLabelFromHistory(historyFromThread(thread || {}), threadLabelFromHistory(history, id || "共有チャット"));
+}
+
 class SharedBridge {
   constructor(requestedThreadId, bridgeKey) {
     this.requestedThreadId = requestedThreadId;
@@ -634,6 +653,7 @@ class SharedBridge {
     this.nextId = 1;
     this.pending = new Map();
     this.threadId = null;
+    this.threadLabel = "";
     this.activeTurnId = null;
     this.ready = false;
     this.createdAt = Date.now();
@@ -663,10 +683,9 @@ class SharedBridge {
   }
 
   readyPayload() {
-    const override = this.threadId ? threadTitleOverrides.get(this.threadId) : null;
     return {
       threadId: this.threadId,
-      threadLabel: override?.name || threadLabelFromHistory(this.history, this.threadId || "共有チャット"),
+      threadLabel: this.threadLabel || threadDisplayName({ threadId: this.threadId, history: this.history }),
       model,
       workdir,
       shared: true,
@@ -754,6 +773,7 @@ class SharedBridge {
     this.pendingHandoffOldThreadId = oldThreadId || "";
     this.requestedThreadId = null;
     this.threadId = null;
+    this.threadLabel = "";
     this.ready = false;
     this.history = [];
     this.pending.clear();
@@ -886,6 +906,7 @@ class SharedBridge {
             preview: this.pendingHandoffOldThreadId ? `旧thread: ${this.pendingHandoffOldThreadId}` : "旧チャットから自動引き継ぎした軽量チャット",
           });
         }
+        this.threadLabel = threadDisplayName({ thread: msg.result.thread, threadId: this.threadId });
         this.promoteBridgeKey();
         this.ready = true;
         if (this.startupGuardTimer) clearTimeout(this.startupGuardTimer);
@@ -1285,6 +1306,7 @@ async function main() {
       if (liveBridge) {
         sendJson(res, 200, {
           threadId,
+          name: liveBridge.readyPayload().threadLabel,
           live: true,
           history: liveBridge.history.slice(-limit),
         });
@@ -1308,12 +1330,14 @@ async function main() {
           });
           thread = result.thread;
         }
-        sendJson(res, 200, { threadId: thread.id || threadId, history: historyFromThread(thread, limit) });
+        const history = historyFromThread(thread, limit);
+        sendJson(res, 200, { threadId: thread.id || threadId, name: threadDisplayName({ thread, threadId, history }), history });
       } catch (error) {
         const fallbackHistory = sessionHistoryForThread(threadId, limit);
         if (fallbackHistory.length) {
           sendJson(res, 200, {
             threadId,
+            name: threadDisplayName({ threadId, history: fallbackHistory }),
             history: fallbackHistory,
             source: "session-file",
             warning: error.message,
