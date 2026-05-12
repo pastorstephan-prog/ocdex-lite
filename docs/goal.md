@@ -5,9 +5,8 @@ Ocdex Lite ships first as a public PWA repository.
 The initial business model is:
 
 - open source PWA
-- paid setup guide
-- A paid self-setup guide, with no individual support promise
-- optional done-with-you setup support
+- 500 yen paid self-setup guide
+- no individual support, no setup agency work, no environment-specific guarantee
 
 Not first:
 

@@ -118,7 +118,7 @@ The first commercial goal is not an App Store app and not a GitHub Marketplace a
 
 - public PWA repository
 - Paid self-setup guide, with no individual support promise
-- setup support for people who want a stable mobile Codex remote
+- a low-friction paid guide for people who want a stable mobile Codex remote
 
 See [docs/ocdex-lite-goal.ja.md](docs/ocdex-lite-goal.ja.md) and [docs/ocdex-lite-commercial-plan.ja.md](docs/ocdex-lite-commercial-plan.ja.md).
 

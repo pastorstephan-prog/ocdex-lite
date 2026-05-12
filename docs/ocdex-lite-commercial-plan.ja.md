@@ -50,8 +50,8 @@ GitHub Marketplaceでいきなり売るより、まずは次の形が現実的�
 - READMEをOcdex Lite中心に書き直す
 - スクリーンショットを載せる
 - SECURITY.mdを強く書く
-- FUNDING.ymlを置く
 - Releasesでzipを配る
+- 500円note有料記事への導線を置く
 
 ### note有料記事
 

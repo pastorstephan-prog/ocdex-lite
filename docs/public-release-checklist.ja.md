@@ -2,10 +2,10 @@
 
 ## 必須
 
-- [ ] GitHub repo名を決める
-- [ ] READMEの`YOUR_ORG`を実リポジトリに差し替える
+- [x] GitHub repo名を決める
+- [x] READMEの`YOUR_ORG`を実リポジトリに差し替える
 - [x] 初期販売導線をnote有料記事に決める
-- [ ] `FUNDING.yml`を追加する
+- [x] GitHub Sponsors/FUNDINGを初期導線から外す
 - [x] token入りURLがスクリーンショットにないことを確認する
 - [x] `.phone-token`, `.uploads`, `.codex-home*`, `tmp`, logsをGitに入れない
 - [x] `npm run check`
@@ -46,6 +46,5 @@ Security:
 ## 有料導線案
 
 - Free: OSS本体
-- Supporter: 月額支援
 - Setup guide: note有料記事
 - 個別導入支援: 初期では売らない
