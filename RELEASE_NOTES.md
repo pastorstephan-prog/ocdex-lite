@@ -1,4 +1,13 @@
-# Ocdex Lite v1.0.4
+# Ocdex Lite v1.0.5
+
+## v1.0.5
+
+Thread title consistency update.
+
+- Use the Mac/Codex `thread.name` as the source of truth for normal chats
+- Keep the opened-chat title aligned with the recent-chat list on mobile and desktop
+- Name lightweight fallback chats as `軽量版: <元のMacスレッド名>`
+- Keep old thread ids out of the visible title and preserve them in preview/handoff context
 
 ## v1.0.4
 
