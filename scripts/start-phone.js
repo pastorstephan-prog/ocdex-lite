@@ -46,6 +46,7 @@ const uploadDir = path.join(root, ".uploads");
 const sessionsDir = path.join(os.homedir(), ".codex", "sessions");
 const bridges = new Map();
 const threadTitleOverrides = new Map();
+const threadNameCache = new Map();
 const historyLimit = Number(process.env.CODEX_HISTORY_LIMIT || 80);
 const threadListLimit = Number(process.env.CODEX_THREAD_LIST_LIMIT || 80);
 const historySyncLimit = Number(process.env.CODEX_HISTORY_SYNC_LIMIT || 10);
@@ -639,6 +640,7 @@ function threadDisplayName({ thread = null, threadId = "", history = [] } = {}) 
   const id = thread?.id || threadId;
   const override = id ? threadTitleOverrides.get(id) : null;
   if (override?.name) return override.name;
+  if (id && threadNameCache.has(id)) return threadNameCache.get(id);
   if (thread?.name) return thread.name;
   const sessionThread = id ? sessionThreadForId(id) : null;
   if (sessionThread?.name) return sessionThread.name;
@@ -1191,6 +1193,9 @@ async function main() {
         const live = liveBridgeThreads().filter((thread) => !seen.has(thread.id));
         for (const thread of live) seen.add(thread.id);
         result.data = [...live, ...data, ...sessionThreads.filter((thread) => !seen.has(thread.id))].slice(0, limit);
+        for (const thread of result.data) {
+          if (thread.id && thread.name) threadNameCache.set(thread.id, thread.name);
+        }
         sendJson(res, 200, result);
       } catch (error) {
         sendJson(res, 500, { error: error.message });
