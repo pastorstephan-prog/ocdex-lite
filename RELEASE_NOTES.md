@@ -1,4 +1,11 @@
-# Ocdex Lite v1.0.3
+# Ocdex Lite v1.0.4
+
+## v1.0.4
+
+History title fix.
+
+- Use session-file metadata to fill missing `name`, `preview`, and `cwd` fields returned by Codex `thread/list`
+- Prevent old chats with `name: null` from falling back to indistinguishable shared-chat labels
 
 ## v1.0.3
 

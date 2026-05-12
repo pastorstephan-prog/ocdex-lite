@@ -1137,20 +1137,30 @@ async function main() {
           archived: false,
           useStateDbOnly: true,
         });
-        const data = (Array.isArray(result.data) ? result.data : []).map((thread) => {
-          const override = threadTitleOverrides.get(thread.id);
-          return override ? { ...thread, name: override.name, preview: override.preview || thread.preview } : thread;
-        });
-        const seen = new Set(data.map((thread) => thread.id));
-        const live = liveBridgeThreads().filter((thread) => !seen.has(thread.id));
-        for (const thread of live) seen.add(thread.id);
         const sessionThreads = listSessionThreads({
           sessionsDir,
           limit,
           fallbackCwd: workdir,
           fallbackName: projectTitleFromWorkdir(),
-        }).filter((thread) => !seen.has(thread.id));
-        result.data = [...live, ...data, ...sessionThreads].slice(0, limit);
+        });
+        const sessionById = new Map(sessionThreads.map((thread) => [thread.id, thread]));
+        const data = (Array.isArray(result.data) ? result.data : []).map((thread) => {
+          const override = threadTitleOverrides.get(thread.id);
+          if (override) return { ...thread, name: override.name, preview: override.preview || thread.preview };
+          const sessionThread = sessionById.get(thread.id);
+          if (!sessionThread) return thread;
+          return {
+            ...thread,
+            name: thread.name || sessionThread.name,
+            preview: thread.preview || sessionThread.preview,
+            cwd: thread.cwd || sessionThread.cwd,
+            source: thread.source || sessionThread.source,
+          };
+        });
+        const seen = new Set(data.map((thread) => thread.id));
+        const live = liveBridgeThreads().filter((thread) => !seen.has(thread.id));
+        for (const thread of live) seen.add(thread.id);
+        result.data = [...live, ...data, ...sessionThreads.filter((thread) => !seen.has(thread.id))].slice(0, limit);
         sendJson(res, 200, result);
       } catch (error) {
         sendJson(res, 500, { error: error.message });
