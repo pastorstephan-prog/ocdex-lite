@@ -32,8 +32,8 @@ GitHubのリポジトリ設定で Pages を有効化します。
 
 最初はGitHub上で無理に決済を組み込まず、次の軽い導線で始めます。
 
-- GitHub Sponsors
-- note / Gumroad / Stripe Payment Links で有料セットアップガイド
+- note有料記事でセットアップガイドを販売
+- 個別サポートや導入代行は初期商品に含めない
 - GitHub Releases に `ocdex-lite-v1.0.0.tar.gz` を添付
 
 ローカルの配布アーカイブ:

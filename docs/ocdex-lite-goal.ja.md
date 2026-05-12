@@ -4,7 +4,7 @@
 
 Ocdex Liteを、まずはPWA版として公開する。
 
-Mac上で動くCodexを、iPhone/iPadから軽く操作できるローカル優先のリモートUIとして整え、GitHubで公開し、GitHub Sponsorsまたは外部決済の有料ガイド/セットアップサポートで需要を見る。
+Mac上で動くCodexを、iPhone/iPadから軽く操作できるローカル優先のリモートUIとして整え、GitHubで公開し、note有料記事などの自力セットアップガイドで需要を見る。
 
 ## 今はやらない
 
@@ -16,8 +16,9 @@ Mac上で動くCodexを、iPhone/iPadから軽く操作できるローカル優�
 ## 最初の販売形態
 
 - OSS本体: GitHub公開
-- 収益化: GitHub Sponsors / Gumroad / BOOTH / note有料記事など
-- 有料内容: セットアップガイド、LaunchAgent自動起動、Tailscale外出先アクセス、導入サポート
+- 収益化: note有料記事を第一候補にする
+- 有料内容: セットアップガイド、LaunchAgent自動起動、Tailscale外出先アクセス、トラブルシュート集
+- 含めないもの: 個別サポート、導入代行、購入者環境ごとの動作保証
 
 ## MVPの価値
 

@@ -6,7 +6,7 @@ GitHub Marketplaceでいきなり売るより、まずは次の形が現実的�
 
 1. GitHubに公開リポジトリを作る
 2. Ocdex Liteを「CodexをiPhone/iPadから軽く操作するPWA」として見せる
-3. GitHub Sponsorsまたは外部決済で有料サポート/セットアップを売る
+3. note有料記事で、自力セットアップガイドを売る
 4. 需要が見えたら、Hosted版やGitHub App版を検討する
 
 この方針を正式な初期Goalとする。詳細は `docs/ocdex-lite-goal.ja.md`。
@@ -25,22 +25,22 @@ GitHub Marketplaceでいきなり売るより、まずは次の形が現実的�
 
 ## 最初に売るもの
 
-コードそのものをロックして売るより、以下を売るほうが早い。
+コードそのものをロックして売るより、以下をまとめた手順書を売るほうが早い。
 
 - 個人向けセットアップ手順
 - LaunchAgent自動起動テンプレート
 - iPhone/iPad向けLite UI
 - Tailscale前提の外出先アクセス手順
-- 有料サポート
-- 導入代行
+- トラブルシュート集
+- 個別サポートなしの免責文
 
 ## 推奨価格
 
 - Free: OSS本体
-- Supporter: $5-10/month
-- Pro setup guide: $19-49 one-time
-- Done-with-you setup: $99-199
-- Team/agency setup: $299+
+- Paid setup guide: 500円
+- Individual support: 売らない
+- Done-with-you setup: 売らない
+- Team/agency setup: 初期では売らない
 
 ## GitHubでの出し方
 
@@ -53,14 +53,16 @@ GitHub Marketplaceでいきなり売るより、まずは次の形が現実的�
 - FUNDING.ymlを置く
 - Releasesでzipを配る
 
-### GitHub Sponsors
+### note有料記事
 
 向いている用途:
 
-- 継続支援
-- サポート枠
-- 早期アクセス
-- セットアップ相談
+- 低価格の単発販売
+- 日本語の手順書販売
+- 購入者に「自己責任・質問対応なし」を明記しやすい
+- 更新履歴を追記しやすい
+
+初期販売では、GitHub Sponsorsや個別サポートは使わない。
 
 ### GitHub Marketplace
 
@@ -110,4 +112,4 @@ GitHub Marketplaceでいきなり売るより、まずは次の形が現実的�
 4. token再生成コマンドを追加
 5. iPhone/iPadスクリーンショットを撮る
 6. GitHub公開用に秘密ファイル除外を再確認
-7. GitHub Sponsors / 外部決済リンクを決める
+7. note有料記事の本文と販売ページを作る

@@ -6,7 +6,7 @@ The initial business model is:
 
 - open source PWA
 - paid setup guide
-- GitHub Sponsors or an external payment link
+- A paid self-setup guide, with no individual support promise
 - optional done-with-you setup support
 
 Not first:

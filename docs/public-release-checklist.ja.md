@@ -4,7 +4,7 @@
 
 - [ ] GitHub repo名を決める
 - [ ] READMEの`YOUR_ORG`を実リポジトリに差し替える
-- [ ] GitHub Sponsors / Gumroad / BOOTH / noteのどれを使うか決める
+- [x] 初期販売導線をnote有料記事に決める
 - [ ] `FUNDING.yml`を追加する
 - [x] token入りURLがスクリーンショットにないことを確認する
 - [x] `.phone-token`, `.uploads`, `.codex-home*`, `tmp`, logsをGitに入れない
@@ -47,5 +47,5 @@ Security:
 
 - Free: OSS本体
 - Supporter: 月額支援
-- Setup guide: 有料記事/ Gumroad
-- Done-with-you setup: 個別導入支援
+- Setup guide: note有料記事
+- 個別導入支援: 初期では売らない
