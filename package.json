@@ -1,0 +1,42 @@
+{
+  "name": "ocdex-lite",
+  "version": "1.0.0",
+  "description": "Local-first iPhone and iPad PWA remote for Codex running on your Mac.",
+  "private": false,
+  "type": "commonjs",
+  "scripts": {
+    "version:codex": "codex --version",
+    "help:remote-control": "codex remote-control --help",
+    "server:ws": "mkdir -p .codex-home-ws && CODEX_HOME=$PWD/.codex-home-ws codex app-server --listen ws://127.0.0.1:45213",
+    "probe:ws": "node scripts/probe-ws.js",
+    "phone": "node scripts/start-phone.js",
+    "token:reset": "node scripts/reset-token.js",
+    "launchagent:install": "node scripts/install-launchagent.js",
+    "screenshots:readme": "node scripts/capture-readme-screenshots.js",
+    "test": "node --test scripts/*.test.js",
+    "check": "node --check scripts/start-phone.js && node --check scripts/probe-ws.js && node --check scripts/reset-token.js && node --check scripts/install-launchagent.js && node --check public/main.js && node --check public/lite.js",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "keywords": [
+    "codex",
+    "ocdex",
+    "pwa",
+    "iphone",
+    "ipad",
+    "remote-control",
+    "app-server",
+    "websocket",
+    "phone-bridge",
+    "local-first"
+  ],
+  "author": "Stephan",
+  "license": "ISC",
+  "devDependencies": {
+    "@openai/codex": "^0.130.0",
+    "playwright": "^1.59.1",
+    "vitepress": "^1.6.4",
+    "ws": "^8.20.0"
+  }
+}

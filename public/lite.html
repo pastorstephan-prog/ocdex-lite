@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Ocdex Lite</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <meta name="theme-color" content="#f7f7f4" />
+    <link rel="stylesheet" href="/lite.css" />
+  </head>
+  <body>
+    <main class="lite-shell">
+      <header class="topbar">
+        <div>
+          <h1>Ocdex Lite</h1>
+          <p id="meta">接続準備中</p>
+        </div>
+        <div class="top-actions">
+          <button id="threadsButton" type="button" title="最近のチャット">履歴</button>
+          <button id="newThread" type="button" title="新しいチャット">＋</button>
+          <button id="reconnect" type="button" title="再接続">↻</button>
+        </div>
+      </header>
+
+      <section id="threadsPanel" class="threads-panel hidden" aria-label="最近のチャット">
+        <div class="threads-panel-head">
+          <strong>最近のチャット</strong>
+          <button id="closeThreads" type="button" title="閉じる">×</button>
+        </div>
+        <div id="threadsList" class="threads-list"></div>
+      </section>
+
+      <section id="log" class="log" aria-live="polite"></section>
+
+      <section id="approval" class="approval hidden">
+        <div>
+          <strong>承認が必要です</strong>
+          <pre id="approvalText"></pre>
+        </div>
+        <div class="approval-actions">
+          <button id="decline" type="button" class="secondary">拒否</button>
+          <button id="approve" type="button">承認</button>
+        </div>
+      </section>
+
+      <div id="state" class="state" data-state="connecting">
+        <span></span>
+        <b id="stateLabel">接続準備中</b>
+      </div>
+
+      <form id="composer" class="composer">
+        <input id="fileInput" type="file" accept="image/*" multiple hidden />
+        <div id="attachments" class="attachments"></div>
+        <textarea id="prompt" rows="2" placeholder="Codexに頼むことを書く"></textarea>
+        <div class="composer-actions">
+          <button id="attach" type="button" title="画像を添付">＋</button>
+          <select id="access" title="権限">
+            <option value="danger-full-access">フルアクセス</option>
+            <option value="workspace-write">確認モード</option>
+            <option value="read-only">読み取り専用</option>
+          </select>
+          <select id="model" title="モデル">
+            <option value="">既定</option>
+            <option value="gpt-5.5">GPT-5.5</option>
+            <option value="gpt-5.4">GPT-5.4</option>
+          </select>
+          <button id="voice" type="button" title="音声入力">mic</button>
+          <button id="send" type="submit" title="送信">↑</button>
+        </div>
+      </form>
+    </main>
+    <script src="/lite.js"></script>
+  </body>
+</html>

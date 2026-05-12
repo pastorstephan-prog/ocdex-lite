@@ -1,0 +1,11 @@
+node_modules/
+.codex-home*/
+schemas/
+tmp/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+*.log
+.DS_Store
+.env
+.phone-token
+.uploads/
