@@ -16,6 +16,7 @@ const threadsButton = document.querySelector("#threadsButton");
 const threadsPanel = document.querySelector("#threadsPanel");
 const closeThreadsButton = document.querySelector("#closeThreads");
 const threadsList = document.querySelector("#threadsList");
+const olderMessagesButton = document.querySelector("#olderMessages");
 const fileInput = document.querySelector("#fileInput");
 const attachButton = document.querySelector("#attach");
 const attachmentsEl = document.querySelector("#attachments");
@@ -37,6 +38,8 @@ let lastError = "";
 let reconnects = 0;
 let threadsLoaded = false;
 let connectionSeq = 0;
+let currentHistory = [];
+let visibleHistoryLimit = 20;
 const threadListCache = new Map();
 const draftStoragePrefix = "ocdexDraft";
 
@@ -126,6 +129,24 @@ function withToken(path) {
 function setReady(ready) {
   sendButton.disabled = !ready;
   promptInput.disabled = !ready;
+}
+
+function applyBridgeState(msg = {}) {
+  const clients = Number(msg.clients || 1);
+  const queued = Number(msg.queuedTurns || 0);
+  const busy = Boolean(msg.activeTurn || msg.pendingTurnStart);
+  meta.textContent = `${clients}端末${msg.threadId ? "" : ""}`;
+  if (queued > 0) {
+    setState("running", busy ? `処理中・${queued}件待機` : `${queued}件待機`);
+    sendButton.title = "送信するとキューに追加されます";
+    return;
+  }
+  if (busy) {
+    setState(assistantBubble ? "streaming" : "running", assistantBubble ? "回答中" : "送信中");
+    sendButton.title = "送信するとキューに追加されます";
+    return;
+  }
+  sendButton.title = "送信";
 }
 
 function currentDraftKey() {
@@ -236,12 +257,13 @@ async function openThread(nextThreadId) {
   if (!nextThreadId) return;
   savePromptDraft();
   threadId = nextThreadId;
+  visibleHistoryLimit = 20;
   setCurrentThreadTitle(threadListCache.get(nextThreadId) || "チャットを読み込み中");
   restorePromptDraft();
   threadsPanel.classList.add("hidden");
   setState("connecting", "履歴を読み込み中");
   try {
-    const result = await apiGet(`/api/thread?thread=${encodeURIComponent(threadId)}&limit=12`);
+    const result = await apiGet(`/api/thread?thread=${encodeURIComponent(threadId)}&limit=80`);
     renderHistory(result.history || []);
   } catch (error) {
     addEntry("error", `チャットを読めませんでした: ${error.message}`);
@@ -250,8 +272,11 @@ async function openThread(nextThreadId) {
 }
 
 function renderHistory(history = []) {
+  currentHistory = history || [];
   log.replaceChildren();
-  for (const entry of history.slice(-12)) addEntry(entry.type, entry.text, entry.attachments || []);
+  const visible = currentHistory.slice(-visibleHistoryLimit);
+  for (const entry of visible) addEntry(entry.type, entry.text, entry.attachments || []);
+  olderMessagesButton.classList.toggle("hidden", currentHistory.length <= visibleHistoryLimit);
 }
 
 function updateThreadUrl() {
@@ -302,6 +327,7 @@ function connect() {
       threadId = msg.threadId || threadId;
       setCurrentThreadTitle(threadListCache.get(threadId) || msg.threadLabel || projectTitleFromPath(msg.workdir) || "共有チャット");
       if (threadId && threadId !== previousThreadId) {
+        visibleHistoryLimit = 20;
         threadsLoaded = false;
         log.replaceChildren();
         lastError = "";
@@ -311,8 +337,13 @@ function connect() {
       renderHistory(msg.history || []);
       setReady(true);
       setState("ready", "待機中");
-      meta.textContent = `${msg.clients || 1}端末 / ${msg.workdir || ""}`;
+      applyBridgeState(msg);
+      if (!msg.activeTurn && !msg.pendingTurnStart && !msg.queuedTurns) meta.textContent = `${msg.clients || 1}端末 / ${msg.workdir || ""}`;
       addStatus("共有チャットに接続しました。");
+      return;
+    }
+    if (msg.type === "bridgeState") {
+      applyBridgeState(msg);
       return;
     }
     if (msg.type === "user") {
@@ -350,7 +381,7 @@ function connect() {
     }
     if (msg.type === "error") {
       const friendly = /Max payload size exceeded/i.test(msg.text || "")
-        ? "送信が大きすぎました。画像を1枚だけにして再読み込みしてください。"
+        ? "このチャットの履歴が大きすぎて読み込めませんでした。新しい軽量チャットに切り替えます。"
         : msg.text;
       setState("error", "エラー");
       addEntry("error", friendly);
@@ -524,6 +555,8 @@ declineButton.addEventListener("click", () => {
 newThreadButton.addEventListener("click", () => {
   savePromptDraft();
   threadId = "";
+  visibleHistoryLimit = 20;
+  currentHistory = [];
   threadsLoaded = false;
   setCurrentThreadTitle("共有チャット");
   restorePromptDraft();
@@ -536,6 +569,12 @@ newThreadButton.addEventListener("click", () => {
 reconnectButton.addEventListener("click", connect);
 threadsButton.addEventListener("click", toggleThreads);
 closeThreadsButton.addEventListener("click", () => threadsPanel.classList.add("hidden"));
+olderMessagesButton.addEventListener("click", () => {
+  const previousHeight = log.scrollHeight;
+  visibleHistoryLimit = Math.min(80, visibleHistoryLimit + 20);
+  renderHistory(currentHistory);
+  log.scrollTop = Math.max(0, log.scrollHeight - previousHeight);
+});
 
 voiceButton.addEventListener("click", () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;

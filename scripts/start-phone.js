@@ -41,13 +41,15 @@ const model = process.env.CODEX_MODEL || "gpt-5.4";
 const historySyncEnabled = isHistorySyncEnabled(process.env);
 const tokenPath = path.join(root, ".phone-token");
 const uploadDir = path.join(root, ".uploads");
+const sessionsDir = path.join(os.homedir(), ".codex", "sessions");
 const bridges = new Map();
-const historyLimit = Number(process.env.CODEX_HISTORY_LIMIT || 30);
+const historyLimit = Number(process.env.CODEX_HISTORY_LIMIT || 80);
 const threadListLimit = Number(process.env.CODEX_THREAD_LIST_LIMIT || 80);
 const historySyncLimit = Number(process.env.CODEX_HISTORY_SYNC_LIMIT || 10);
 const wsMaxPayload = Number(process.env.CODEX_WS_MAX_PAYLOAD_MB || 256) * 1024 * 1024;
 const uploadMaxBytes = Number(process.env.CODEX_UPLOAD_MAX_MB || 12) * 1024 * 1024;
 const bridgeIdleDisposeMs = Number(process.env.CODEX_BRIDGE_IDLE_DISPOSE_MS || 10 * 60 * 1000);
+const bridgeStartupTimeoutMs = Number(process.env.CODEX_BRIDGE_STARTUP_TIMEOUT_MS || 15 * 1000);
 const imageExtensions = new Map([
   [".png", "image/png"],
   [".jpg", "image/jpeg"],
@@ -403,6 +405,125 @@ function stripUiDirectives(text) {
     .trim();
 }
 
+function excerptText(value, max = 900) {
+  const text = stripUiDirectives(value).replace(/\s+/g, " ").trim();
+  if (text.length <= max) return text;
+  return `${text.slice(0, max - 1)}…`;
+}
+
+function findSessionFileForThread(threadId, dir = sessionsDir, depth = 0) {
+  if (!threadId || depth > 5 || !fs.existsSync(dir)) return null;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const target = path.join(dir, entry.name);
+    if (entry.isFile() && entry.name.includes(threadId) && entry.name.endsWith(".jsonl")) return target;
+    if (entry.isDirectory()) {
+      const found = findSessionFileForThread(threadId, target, depth + 1);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function textFromResponseContent(content = []) {
+  if (!Array.isArray(content)) return "";
+  return content
+    .map((part) => part?.text || "")
+    .filter(Boolean)
+    .join("\n");
+}
+
+function readSessionTail(filePath, maxBytes = 2 * 1024 * 1024) {
+  const stat = fs.statSync(filePath);
+  const fd = fs.openSync(filePath, "r");
+  const size = Math.min(stat.size, maxBytes);
+  const buffer = Buffer.alloc(size);
+  fs.readSync(fd, buffer, 0, size, Math.max(0, stat.size - size));
+  fs.closeSync(fd);
+  return buffer.toString("utf8").split(/\r?\n/).slice(stat.size > maxBytes ? 1 : 0);
+}
+
+function sessionHistoryForThread(threadId, limit = historyLimit) {
+  const filePath = findSessionFileForThread(threadId);
+  if (!filePath) return [];
+  const messages = [];
+  const pushMessage = (entry) => {
+    if (!entry.text) return;
+    const previous = messages[messages.length - 1];
+    if (previous && previous.type === entry.type && previous.text === entry.text) return;
+    messages.push(entry);
+  };
+  for (const line of readSessionTail(filePath)) {
+    if (!line.trim()) continue;
+    let row;
+    try {
+      row = JSON.parse(line);
+    } catch {
+      continue;
+    }
+    const payload = row.payload || {};
+    if (row.type === "response_item" && payload.type === "message") {
+      const text = stripUiDirectives(textFromResponseContent(payload.content));
+      pushMessage({ type: payload.role === "assistant" ? "assistant" : "user", text });
+    }
+    if (row.type === "event_msg" && payload.type === "user_message") {
+      const text = stripUiDirectives(payload.message || payload.text || "");
+      pushMessage({ type: "user", text });
+    }
+    if (row.type === "event_msg" && payload.type === "agent_message") {
+      const text = stripUiDirectives(payload.message || payload.text || "");
+      pushMessage({ type: "assistant", text });
+    }
+  }
+  return messages.slice(-limit);
+}
+
+function handoffTextForThread(threadId, reason) {
+  const filePath = findSessionFileForThread(threadId);
+  if (!filePath) return "";
+  const messages = [];
+  const pushMessage = (entry) => {
+    if (!entry.text) return;
+    const previous = messages[messages.length - 1];
+    if (previous && previous.role === entry.role && previous.text === entry.text) return;
+    messages.push(entry);
+  };
+  for (const line of readSessionTail(filePath)) {
+    if (!line.trim()) continue;
+    let row;
+    try {
+      row = JSON.parse(line);
+    } catch {
+      continue;
+    }
+    const payload = row.payload || {};
+    if (row.type === "response_item" && payload.type === "message") {
+      const text = excerptText(textFromResponseContent(payload.content));
+      pushMessage({ role: payload.role === "assistant" ? "assistant" : "user", text });
+    }
+    if (row.type === "event_msg" && payload.type === "user_message") {
+      const text = excerptText(payload.message || payload.text || "");
+      pushMessage({ role: "user", text });
+    }
+    if (row.type === "event_msg" && payload.type === "agent_message") {
+      const text = excerptText(payload.message || payload.text || "");
+      pushMessage({ role: "assistant", text });
+    }
+  }
+  const recent = messages.filter((message) => message.text).slice(-8);
+  if (!recent.length) return "";
+  const body = recent.map((message) => `- ${message.role}: ${message.text}`).join("\n");
+  return [
+    "旧チャットが重すぎてモバイルで安全に再開できなかったため、新しい軽量チャットへ自動引き継ぎします。",
+    `旧thread: ${threadId}`,
+    `理由: ${reason}`,
+    "",
+    "旧チャット末尾から抽出した直近文脈:",
+    body,
+    "",
+    "以後はこの文脈を前提に、ユーザーの次の依頼へ自然に続けてください。必要なら不足分だけ短く確認してください。",
+  ].join("\n");
+}
+
 function summarizeItem(item) {
   if (item.type === "userMessage") {
     const textParts = [];
@@ -494,6 +615,10 @@ function liveBridgeThreads() {
     });
 }
 
+function findLiveBridgeThread(threadId) {
+  return Array.from(bridges.values()).find((bridge) => bridge.ready && bridge.threadId === threadId) || null;
+}
+
 class SharedBridge {
   constructor(requestedThreadId, bridgeKey) {
     this.requestedThreadId = requestedThreadId;
@@ -504,11 +629,13 @@ class SharedBridge {
     this.threadId = null;
     this.activeTurnId = null;
     this.ready = false;
+    this.createdAt = Date.now();
     this.history = [];
     this.turnQueue = [];
+    this.pendingHandoffText = "";
     this.idleDisposeTimer = null;
-    this.upstream = createUpstreamWebSocket();
-    this.bindUpstream();
+    this.upstream = null;
+    this.startUpstream();
   }
 
   addClient(browser) {
@@ -517,9 +644,11 @@ class SharedBridge {
     this.emitTo(browser, "status", { text: "共有Codexブリッジに参加しました。" });
     if (this.ready) {
       this.emitTo(browser, "ready", this.readyPayload());
+      this.emitTo(browser, "bridgeState", this.bridgeStatePayload());
     }
     browser.on("close", () => {
       this.clients.delete(browser);
+      this.emitBridgeState();
       this.maybeScheduleIdleDispose();
     });
   }
@@ -532,7 +661,20 @@ class SharedBridge {
       workdir,
       shared: true,
       clients: this.clients.size,
+      activeTurn: Boolean(this.activeTurnId),
+      pendingTurnStart: this.hasPendingTurnStart(),
+      queuedTurns: this.turnQueue.length,
       history: this.history,
+    };
+  }
+
+  bridgeStatePayload() {
+    return {
+      threadId: this.threadId,
+      clients: this.clients.size,
+      activeTurn: Boolean(this.activeTurnId),
+      pendingTurnStart: this.hasPendingTurnStart(),
+      queuedTurns: this.turnQueue.length,
     };
   }
 
@@ -547,9 +689,87 @@ class SharedBridge {
     if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type, ...payload }));
   }
 
+  emitBridgeState() {
+    this.emit("bridgeState", this.bridgeStatePayload());
+  }
+
+  clearPendingTimeout(id) {
+    const timeout = this.pending.get(`${id}:timeout`);
+    if (timeout) clearTimeout(timeout);
+    this.pending.delete(`${id}:timeout`);
+  }
+
+  failStartup(message) {
+    if (this.startupGuardTimer) clearTimeout(this.startupGuardTimer);
+    this.startupGuardTimer = null;
+    this.emit("error", { text: "Codexの起動応答が止まったため、接続を作り直します。" });
+    this.emit("status", { text: message });
+    bridges.delete(this.bridgeKey);
+    try {
+      this.upstream.terminate?.();
+      this.upstream.close?.();
+    } catch {}
+    for (const client of this.clients) {
+      try {
+        client.close(1011, "Codex bridge startup timed out");
+      } catch {}
+    }
+  }
+
+  startStartupGuard() {
+    if (this.startupGuardTimer) clearTimeout(this.startupGuardTimer);
+    this.startupGuardTimer = setTimeout(() => {
+      if (this.ready) return;
+      if (Array.from(this.pending.values()).includes("thread/resume")) {
+        this.restartAsNewThread("旧threadの再開応答が止まったため、新しい軽量共有threadを開始します。");
+        return;
+      }
+      this.failStartup("Codex bridge startup timed out before ready");
+    }, bridgeStartupTimeoutMs);
+    this.startupGuardTimer.unref?.();
+  }
+
+  startUpstream() {
+    this.createdAt = Date.now();
+    this.startStartupGuard();
+    this.upstream = createUpstreamWebSocket();
+    this.bindUpstream();
+  }
+
+  restartAsNewThread(reason) {
+    const oldThreadId = this.requestedThreadId;
+    this.pendingHandoffText = handoffTextForThread(oldThreadId, reason);
+    this.requestedThreadId = null;
+    this.threadId = null;
+    this.ready = false;
+    this.history = [];
+    this.pending.clear();
+    this.emit("status", { text: reason });
+    if (this.pendingHandoffText) this.emit("status", { text: "旧チャット末尾から引き継ぎメモを作成しました。" });
+    try {
+      this.upstream?.terminate?.();
+      this.upstream?.close?.();
+    } catch {}
+    this.startUpstream();
+  }
+
   request(method, params) {
     const id = this.nextId++;
     this.upstream.send(JSON.stringify({ id, method, params }));
+    if (method === "thread/start" || method === "thread/resume") {
+      const timeout = setTimeout(() => {
+        if (this.pending.get(id) !== method) return;
+        this.pending.delete(id);
+        this.clearPendingTimeout(id);
+        if (method === "thread/resume") {
+          this.restartAsNewThread(`旧threadの再開が${Math.round(bridgeStartupTimeoutMs / 1000)}秒以内に完了しなかったため、新しい軽量共有threadを開始します。`);
+          return;
+        }
+        this.failStartup(`Codex app-server did not answer ${method} within ${Math.round(bridgeStartupTimeoutMs / 1000)}s`);
+      }, bridgeStartupTimeoutMs);
+      timeout.unref?.();
+      this.pending.set(`${id}:timeout`, timeout);
+    }
     return id;
   }
 
@@ -625,10 +845,16 @@ class SharedBridge {
 
       if (pendingMethod === "thread/start" || pendingMethod === "thread/resume") {
         this.pending.delete(msg.id);
+        this.clearPendingTimeout(msg.id);
         if (msg.error) {
           const message = msg.error.message || JSON.stringify(msg.error);
-          if (pendingMethod === "thread/resume" && /no rollout found|not found/i.test(message)) {
-            this.emit("status", { text: "元のthreadが見つからないため、新しい共有threadを開始します。" });
+          if (pendingMethod === "thread/resume" && /no rollout found|not found|Max payload size exceeded|payload/i.test(message)) {
+            const reason = /payload/i.test(message)
+              ? "元のthreadの履歴が大きすぎるため、新しい軽量共有threadを開始します。"
+              : "元のthreadが見つからないため、新しい共有threadを開始します。";
+            this.emit("status", { text: reason });
+            this.pendingHandoffText = handoffTextForThread(this.requestedThreadId, reason);
+            if (this.pendingHandoffText) this.emit("status", { text: "旧チャット末尾から引き継ぎメモを作成しました。" });
             this.requestedThreadId = null;
             this.history = [];
             this.startCodexThread("thread/start");
@@ -640,9 +866,18 @@ class SharedBridge {
         this.threadId = msg.result.thread.id;
         this.promoteBridgeKey();
         this.ready = true;
+        if (this.startupGuardTimer) clearTimeout(this.startupGuardTimer);
+        this.startupGuardTimer = null;
         this.history = historyFromThread(msg.result.thread);
         this.emit("ready", this.readyPayload());
+        this.emitBridgeState();
         if (this.requestedThreadId) this.emit("status", { text: `既存threadを再開しました: ${this.threadId}` });
+        if (this.pendingHandoffText) {
+          const handoff = this.pendingHandoffText;
+          this.pendingHandoffText = "";
+          this.emit("status", { text: "新しい軽量チャットへ引き継ぎを送信します。" });
+          this.startPrompt(handoff, [], { approvalPolicy: "on-request", sandboxMode: "workspace-write" });
+        }
         return;
       }
 
@@ -651,10 +886,12 @@ class SharedBridge {
         if (msg.error) {
           this.emit("error", { text: msg.error.message || JSON.stringify(msg.error) });
           this.startNextQueuedTurn();
+          this.emitBridgeState();
           this.maybeScheduleIdleDispose();
         } else {
           this.activeTurnId = msg.result.turn.id;
           this.emit("turn", { status: "started", turnId: this.activeTurnId });
+          this.emitBridgeState();
         }
         return;
       }
@@ -684,6 +921,7 @@ class SharedBridge {
         this.emit("turn", { status: "completed", turnId: msg.params.turnId });
         this.syncHistory("turn completed");
         this.startNextQueuedTurn();
+        this.emitBridgeState();
         this.maybeScheduleIdleDispose();
         return;
       }
@@ -713,6 +951,7 @@ class SharedBridge {
     if (this.activeTurnId || this.hasPendingTurnStart()) {
       this.turnQueue.push({ text, attachments, options });
       this.emit("status", { text: `キューに追加しました（${this.turnQueue.length}件待機）` });
+      this.emitBridgeState();
       return;
     }
     this.startPrompt(text, attachments, options);
@@ -722,6 +961,7 @@ class SharedBridge {
     if (!this.ready || this.activeTurnId || this.hasPendingTurnStart() || !this.turnQueue.length) return;
     const next = this.turnQueue.shift();
     this.emit("status", { text: `キューから送信中（残り${this.turnQueue.length}件）` });
+    this.emitBridgeState();
     this.startPrompt(next.text, next.attachments, next.options);
   }
 
@@ -783,6 +1023,7 @@ class SharedBridge {
       ...params,
     });
     this.pending.set(id, "turn/start");
+    this.emitBridgeState();
     const displayText = savedImages.length ? `${text}\n\n添付: ${savedImages.map((image) => image.name).join(", ")}` : text;
     this.appendHistory({ type: "user", text: displayText, attachments: savedImages });
     this.emit("user", { text: displayText, attachments: savedImages });
@@ -811,8 +1052,16 @@ class SharedBridge {
 
 function getBridge(threadId, connectionId = crypto.randomUUID()) {
   if (!threadId) {
-    for (const bridge of bridges.values()) {
-      if (!bridge.requestedThreadId) return bridge;
+    const reusable = Array.from(bridges.values()).find((bridge) => !bridge.requestedThreadId && bridge.ready && bridge.threadId);
+    if (reusable) return reusable;
+    for (const [key, bridge] of bridges.entries()) {
+      if (!bridge.requestedThreadId && !bridge.ready && Date.now() - bridge.createdAt > bridgeStartupTimeoutMs) {
+        bridges.delete(key);
+        try {
+          bridge.upstream.terminate?.();
+          bridge.upstream.close?.();
+        } catch {}
+      }
     }
   }
   const key = bridgeKeyForRequest(threadId, connectionId);
@@ -983,9 +1232,18 @@ async function main() {
     if (url.pathname === "/api/thread") {
       if (!requireToken(url, phoneToken, res)) return;
       const threadId = url.searchParams.get("thread");
-      const limit = Math.max(1, Math.min(30, Number(url.searchParams.get("limit") || historyLimit)));
+      const limit = Math.max(1, Math.min(80, Number(url.searchParams.get("limit") || historyLimit)));
       if (!threadId) {
         sendJson(res, 400, { error: "thread is required" });
+        return;
+      }
+      const liveBridge = findLiveBridgeThread(threadId);
+      if (liveBridge) {
+        sendJson(res, 200, {
+          threadId,
+          live: true,
+          history: liveBridge.history.slice(-limit),
+        });
         return;
       }
       try {
@@ -1008,6 +1266,16 @@ async function main() {
         }
         sendJson(res, 200, { threadId: thread.id || threadId, history: historyFromThread(thread, limit) });
       } catch (error) {
+        const fallbackHistory = sessionHistoryForThread(threadId, limit);
+        if (fallbackHistory.length) {
+          sendJson(res, 200, {
+            threadId,
+            history: fallbackHistory,
+            source: "session-file",
+            warning: error.message,
+          });
+          return;
+        }
         sendJson(res, 500, { error: error.message });
       }
       return;

@@ -652,6 +652,24 @@ function setReady(ready) {
   promptInput.disabled = !ready;
 }
 
+function applyBridgeState(msg = {}) {
+  const queued = Number(msg.queuedTurns || 0);
+  const busy = Boolean(msg.activeTurn || msg.pendingTurnStart);
+  const clients = Number(msg.clients || 1);
+  if (clients) meta.textContent = `${clients}端末で共有中`;
+  if (queued > 0) {
+    setRunState("running", busy ? `処理中・${queued}件待機` : `${queued}件待機`);
+    sendButton.title = "送信するとキューに追加されます";
+    return;
+  }
+  if (busy) {
+    setRunState(assistantEntry ? "streaming" : "running", assistantEntry ? "回答中" : "送信中");
+    sendButton.title = "送信するとキューに追加されます";
+    return;
+  }
+  sendButton.title = "送信";
+}
+
 function renderHistory(history) {
   log.replaceChildren();
   statusGroup = null;
@@ -1256,7 +1274,12 @@ function connect() {
       renderHistoryIfChanged(msg.history || []);
       meta.textContent = `${msg.model}  •  ${msg.clients}端末  •  ${msg.workdir}`;
       setRunState("ready");
+      applyBridgeState(msg);
       addEntry("status", `共有Codex thread ready: ${msg.threadId}`);
+      return;
+    }
+    if (msg.type === "bridgeState") {
+      applyBridgeState(msg);
       return;
     }
     if (msg.type === "user") {
@@ -1292,7 +1315,7 @@ function connect() {
     if (msg.type === "error") {
       setRunState("error", msg.text || "エラー");
       const text = /Max payload size exceeded/i.test(msg.text || "")
-        ? "画像またはログが大きすぎました。ページを再読み込みして、画像は1枚ずつ送ってください。"
+        ? "このチャットの履歴が大きすぎて読み込めませんでした。新しい軽量チャットに切り替えます。"
         : msg.text;
       addEntry("error", text);
       return;

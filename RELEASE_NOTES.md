@@ -1,4 +1,17 @@
-# Ocdex Lite v1.0.0
+# Ocdex Lite v1.0.1
+
+## v1.0.1
+
+Reliability update for mobile use.
+
+- Add session-file fallback when Codex app-server closes during thread reads
+- Avoid reusing stuck startup bridges
+- Add startup timeouts so the UI does not stay on "connecting" forever
+- Fall back from stuck old thread resume to a new lightweight thread with an automatic handoff note
+- Show older chat history in small batches instead of loading everything at once
+- Improve multi-device bridge state display for active turns and queued prompts
+
+## v1.0.0
 
 Ocdex Lite turns an iPhone or iPad into a lightweight remote for Codex running on a Mac.
 

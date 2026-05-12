@@ -188,6 +188,21 @@ select {
   max-width: 100%;
 }
 
+.older-messages {
+  align-self: center;
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid var(--paper-line);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.92);
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.older-messages.hidden {
+  display: none;
+}
+
 .entry {
   margin: 10px 0;
   display: flex;
