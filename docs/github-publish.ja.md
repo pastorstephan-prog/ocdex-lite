@@ -12,27 +12,21 @@ GitHubで新しいリポジトリを作成します。
 
 ## 2. pushする
 
-このローカルリポジトリで実行します。
+このローカルリポジトリでは設定済みです。再設定する場合は次を実行します。
 
 ```sh
-git remote add origin https://github.com/<owner>/ocdex-lite.git
+git remote add origin https://github.com/pastorstephan-prog/ocdex-lite.git
 git push -u origin main
 ```
-
-`<owner>` はGitHubのユーザー名またはOrganization名に差し替えます。
 
 ## 3. GitHub Pagesを有効化する
 
 GitHubのリポジトリ設定で Pages を有効化します。
 
 - Source: GitHub Actions または `main` branch
-- 公開URL: `https://<owner>.github.io/ocdex-lite/`
+- 公開URL: `https://pastorstephan-prog.github.io/ocdex-lite/`
 
-公開URLが決まったら、次を差し替えます。
-
-- `README.md` の `YOUR_ORG`
-- `README.ja.md` の `YOUR_ORG`
-- `docs/.vitepress/config.mjs` の `YOUR_ORG`
+公開URLは設定済みです。
 
 ## 4. 販売導線
 

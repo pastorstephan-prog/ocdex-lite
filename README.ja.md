@@ -39,7 +39,7 @@ CodexはMac上では強い一方、iPhone/iPadからの操作はまだ重くな�
 ## Quick Start
 
 ```bash
-git clone https://github.com/YOUR_ORG/ocdex-lite.git
+git clone https://github.com/pastorstephan-prog/ocdex-lite.git
 cd ocdex-lite
 npm ci
 npm run phone

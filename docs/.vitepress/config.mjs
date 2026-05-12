@@ -12,7 +12,7 @@ export default defineConfig({
     ["meta", { property: "og:type", content: "website" }],
     ["meta", { property: "og:title", content: "Ocdex Lite" }],
     ["meta", { property: "og:description", content: "Use your iPhone or iPad as a lightweight remote for Codex running on your Mac." }],
-    ["meta", { property: "og:image", content: "https://YOUR_ORG.github.io/ocdex-lite/social-card.svg" }],
+    ["meta", { property: "og:image", content: "https://pastorstephan-prog.github.io/ocdex-lite/social-card.svg" }],
   ],
   locales: {
     root: {
@@ -23,7 +23,7 @@ export default defineConfig({
           { text: "Start", link: "/guide/phone-bridge" },
           { text: "Goal", link: "/goal" },
           { text: "Safety", link: "/guide/security" },
-          { text: "GitHub", link: "https://github.com/YOUR_ORG/ocdex-lite" },
+          { text: "GitHub", link: "https://github.com/pastorstephan-prog/ocdex-lite" },
         ],
         sidebar: [
           {
@@ -51,7 +51,7 @@ export default defineConfig({
           { text: "始める", link: "/ja/guide/phone-bridge" },
           { text: "Goal", link: "/ja/goal" },
           { text: "安全設計", link: "/ja/guide/security" },
-          { text: "GitHub", link: "https://github.com/YOUR_ORG/ocdex-lite" },
+          { text: "GitHub", link: "https://github.com/pastorstephan-prog/ocdex-lite" },
         ],
         sidebar: [
           {
@@ -74,7 +74,7 @@ export default defineConfig({
   themeConfig: {
     logo: "/logo.svg",
     siteTitle: "Ocdex Lite",
-    socialLinks: [{ icon: "github", link: "https://github.com/YOUR_ORG/ocdex-lite" }],
+    socialLinks: [{ icon: "github", link: "https://github.com/pastorstephan-prog/ocdex-lite" }],
     search: {
       provider: "local",
     },
