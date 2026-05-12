@@ -9,6 +9,7 @@ const WebSocket = require("ws");
 const { bridgeKeyForRequest, shouldDisposeIdleBridge, shouldPromoteBridgeKey } = require("./bridge-state");
 const { isHistorySyncEnabled, runHistorySync } = require("./history-sync");
 const { bridgeUrls, notifyBridgeUrls } = require("./phone-notify");
+const { listSessionThreads } = require("./session-threads");
 const { lightweightHandoffTitle, threadLabelFromHistory } = require("./thread-title");
 
 const root = path.resolve(__dirname, "..");
@@ -1142,7 +1143,14 @@ async function main() {
         });
         const seen = new Set(data.map((thread) => thread.id));
         const live = liveBridgeThreads().filter((thread) => !seen.has(thread.id));
-        result.data = [...live, ...data].slice(0, limit);
+        for (const thread of live) seen.add(thread.id);
+        const sessionThreads = listSessionThreads({
+          sessionsDir,
+          limit,
+          fallbackCwd: workdir,
+          fallbackName: projectTitleFromWorkdir(),
+        }).filter((thread) => !seen.has(thread.id));
+        result.data = [...live, ...data, ...sessionThreads].slice(0, limit);
         sendJson(res, 200, result);
       } catch (error) {
         sendJson(res, 500, { error: error.message });

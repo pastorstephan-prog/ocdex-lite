@@ -1,4 +1,13 @@
-# Ocdex Lite v1.0.2
+# Ocdex Lite v1.0.3
+
+## v1.0.3
+
+History visibility fix.
+
+- Add session-file fallback entries to the recent chat list when Codex `thread/list` omits old chats
+- Build labels, previews, cwd, and timestamps from `~/.codex/sessions/**/*.jsonl`
+- Skip control/instruction noise such as heartbeat and AGENTS messages when choosing chat titles
+- Give untitled old sessions distinguishable fallback names with date and short thread id
 
 ## v1.0.2
 

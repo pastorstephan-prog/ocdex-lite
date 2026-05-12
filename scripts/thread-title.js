@@ -22,6 +22,10 @@ function titleExcerpt(value, maxLength = 30) {
     .map(stripTitleNoise)
     .find(Boolean);
   const cleaned = compactWhitespace(firstLine || "");
+  if (/^<[^>]+>$/.test(cleaned) || /^<\/?[a-z][^>]*>/i.test(cleaned)) return "";
+  if (/^AGENTS\.md instructions\b/i.test(cleaned)) return "";
+  if (/^#\s*Instructions\b/i.test(cleaned)) return "";
+  if (/^旧thread[:：]/i.test(cleaned) || /^理由[:：]/i.test(cleaned)) return "";
   if (!cleaned) return "";
   return cleaned.length > maxLength ? `${cleaned.slice(0, maxLength)}...` : cleaned;
 }
@@ -54,8 +58,11 @@ function threadLabelFromHistory(history = [], fallback = "共有チャット") {
     const firstLine = compactWhitespace(String(firstUser).split("\n").find(Boolean) || "");
     return firstLine.length > 54 ? `${firstLine.slice(0, 54)}...` : firstLine || fallback;
   }
-  const raw = firstUser || fallback;
-  return titleExcerpt(raw, 54) || fallback;
+  const label = history
+    .filter((entry) => entry.type === "user" && entry.text)
+    .map((entry) => titleExcerpt(entry.text, 54))
+    .find(Boolean);
+  return label || titleExcerpt(fallback, 54) || fallback;
 }
 
 module.exports = {
