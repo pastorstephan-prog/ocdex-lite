@@ -5,6 +5,7 @@ if (token) localStorage.setItem("codexPhoneToken", token);
 const log = document.querySelector("#log");
 const meta = document.querySelector("#meta");
 const threadTitle = document.querySelector("#threadTitle");
+const renameThreadButton = document.querySelector("#renameThread");
 const state = document.querySelector("#state");
 const stateLabel = document.querySelector("#stateLabel");
 const composer = document.querySelector("#composer");
@@ -207,6 +208,18 @@ async function apiGet(path) {
   return result;
 }
 
+async function apiPost(path, body = {}) {
+  const separator = path.includes("?") ? "&" : "?";
+  const response = await fetch(`${path}${separator}token=${encodeURIComponent(token)}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || `${response.status} ${response.statusText}`);
+  return result;
+}
+
 function renderThreads(threads = []) {
   threadsList.replaceChildren();
   threadListCache.clear();
@@ -230,6 +243,33 @@ function renderThreads(threads = []) {
     button.append(title, detail);
     button.addEventListener("click", () => openThread(thread.id));
     threadsList.appendChild(button);
+  }
+}
+
+function applyThreadRename(nextThreadId, name) {
+  if (!nextThreadId || !name) return;
+  threadListCache.set(nextThreadId, name);
+  if (nextThreadId === threadId) setCurrentThreadTitle(name);
+}
+
+async function renameCurrentThread() {
+  if (!threadId) {
+    addEntry("error", "名前を変えるには、まずチャットに接続してください。");
+    return;
+  }
+  const current = threadTitle.textContent || threadListCache.get(threadId) || "";
+  const name = window.prompt("新しいスレッド名", current);
+  if (name === null) return;
+  const trimmed = name.replace(/\s+/g, " ").trim();
+  if (!trimmed) return;
+  try {
+    const result = await apiPost("/api/thread/title", { threadId, name: trimmed });
+    applyThreadRename(result.threadId, result.name);
+    threadsLoaded = false;
+    addStatus("スレッド名を変更しました。");
+    if (!threadsPanel.classList.contains("hidden")) await loadThreads();
+  } catch (error) {
+    addEntry("error", `スレッド名を変更できませんでした: ${error.message}`);
   }
 }
 
@@ -345,6 +385,11 @@ function connect() {
     }
     if (msg.type === "bridgeState") {
       applyBridgeState(msg);
+      return;
+    }
+    if (msg.type === "threadRenamed") {
+      applyThreadRename(msg.threadId, msg.name);
+      if (!threadsPanel.classList.contains("hidden")) loadThreads().catch(() => {});
       return;
     }
     if (msg.type === "user") {
@@ -568,6 +613,7 @@ newThreadButton.addEventListener("click", () => {
 });
 
 reconnectButton.addEventListener("click", connect);
+renameThreadButton.addEventListener("click", renameCurrentThread);
 threadsButton.addEventListener("click", toggleThreads);
 closeThreadsButton.addEventListener("click", () => threadsPanel.classList.add("hidden"));
 olderMessagesButton.addEventListener("click", () => {

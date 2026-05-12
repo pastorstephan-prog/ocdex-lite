@@ -42,6 +42,7 @@ const workdir = process.env.CODEX_WORKDIR || root;
 const model = process.env.CODEX_MODEL || "gpt-5.4";
 const historySyncEnabled = isHistorySyncEnabled(process.env);
 const tokenPath = path.join(root, ".phone-token");
+const threadTitleOverridesPath = path.join(root, ".thread-titles.json");
 const uploadDir = path.join(root, ".uploads");
 const sessionsDir = path.join(os.homedir(), ".codex", "sessions");
 const bridges = new Map();
@@ -71,6 +72,48 @@ const staticMimeTypes = new Map([
   [".svg", "image/svg+xml"],
   [".webmanifest", "application/manifest+json"],
 ]);
+
+function normalizeThreadTitle(value) {
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
+}
+
+function loadThreadTitleOverrides() {
+  try {
+    if (!fs.existsSync(threadTitleOverridesPath)) return;
+    const raw = JSON.parse(fs.readFileSync(threadTitleOverridesPath, "utf8"));
+    const entries = Array.isArray(raw?.entries) ? raw.entries : Object.entries(raw || {}).map(([threadId, name]) => ({ threadId, name }));
+    for (const entry of entries) {
+      const threadId = String(entry.threadId || "").trim();
+      const name = normalizeThreadTitle(entry.name);
+      if (threadId && name) {
+        threadTitleOverrides.set(threadId, {
+          name,
+          preview: normalizeThreadTitle(entry.preview) || "手動で名前を変更しました",
+          updatedAt: Number(entry.updatedAt || Date.now()),
+        });
+      }
+    }
+  } catch (error) {
+    console.error(`[phone] failed to read ${threadTitleOverridesPath}: ${error.message}`);
+  }
+}
+
+function saveThreadTitleOverrides() {
+  const entries = Array.from(threadTitleOverrides.entries())
+    .map(([threadId, override]) => ({
+      threadId,
+      name: override.name,
+      preview: override.preview || "",
+      updatedAt: override.updatedAt || Date.now(),
+    }))
+    .sort((a, b) => String(a.threadId).localeCompare(String(b.threadId)));
+  fs.writeFileSync(threadTitleOverridesPath, `${JSON.stringify({ entries }, null, 2)}\n`, { mode: 0o600 });
+}
+
+loadThreadTitleOverrides();
 
 function getToken() {
   if (process.env.PHONE_TOKEN) return process.env.PHONE_TOKEN;
@@ -709,6 +752,12 @@ class SharedBridge {
     };
   }
 
+  renameThread(name) {
+    if (!this.threadId) return;
+    this.threadLabel = name;
+    this.emit("threadRenamed", { threadId: this.threadId, name });
+  }
+
   emit(type, payload = {}) {
     const body = JSON.stringify({ type, ...payload });
     for (const client of this.clients) {
@@ -906,7 +955,9 @@ class SharedBridge {
           threadTitleOverrides.set(this.threadId, {
             name: this.pendingHandoffTitle,
             preview: this.pendingHandoffOldThreadId ? `旧thread: ${this.pendingHandoffOldThreadId}` : "旧チャットから自動引き継ぎした軽量チャット",
+            updatedAt: Date.now(),
           });
+          saveThreadTitleOverrides();
         }
         this.threadLabel = threadDisplayName({ thread: msg.result.thread, threadId: this.threadId });
         this.promoteBridgeKey();
@@ -1199,6 +1250,35 @@ async function main() {
         sendJson(res, 200, result);
       } catch (error) {
         sendJson(res, 500, { error: error.message });
+      }
+      return;
+    }
+    if (url.pathname === "/api/thread/title" && req.method === "POST") {
+      if (!requireToken(url, phoneToken, res)) return;
+      try {
+        const body = await readJsonBody(req, 16 * 1024);
+        const threadId = String(body.threadId || "").trim();
+        const name = normalizeThreadTitle(body.name);
+        if (!threadId) {
+          sendJson(res, 400, { error: "threadId is required" });
+          return;
+        }
+        if (!name) {
+          sendJson(res, 400, { error: "name is required" });
+          return;
+        }
+        threadTitleOverrides.set(threadId, {
+          name,
+          preview: "手動で名前を変更しました",
+          updatedAt: Date.now(),
+        });
+        threadNameCache.set(threadId, name);
+        saveThreadTitleOverrides();
+        const liveBridge = findLiveBridgeThread(threadId);
+        if (liveBridge) liveBridge.renameThread(name);
+        sendJson(res, 200, { ok: true, threadId, name });
+      } catch (error) {
+        sendJson(res, 400, { error: error.message });
       }
       return;
     }

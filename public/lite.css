@@ -78,6 +78,29 @@ h1 {
   letter-spacing: 0.01em;
 }
 
+.thread-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.thread-title-row h1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rename-thread {
+  flex: 0 0 auto;
+  width: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: 10px;
+  color: var(--ink-soft);
+}
+
 p {
   margin: 4px 0 0;
   color: var(--ink-soft);

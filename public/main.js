@@ -31,6 +31,7 @@ const runStateLabel = document.querySelector("#runStateLabel");
 const threadList = document.querySelector("#threadList");
 const threadSearch = document.querySelector("#threadSearch");
 const threadTitle = document.querySelector("#threadTitle");
+const renameThreadButton = document.querySelector("#renameThread");
 const composer = document.querySelector("#composer");
 const promptInput = document.querySelector("#prompt");
 const sendButton = document.querySelector("#send");
@@ -777,6 +778,46 @@ async function apiGet(path) {
   return result;
 }
 
+async function apiPost(path, body = {}) {
+  const separator = path.includes("?") ? "&" : "?";
+  const response = await fetch(`${path}${separator}${authQuery()}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || `${response.status} ${response.statusText}`);
+  return result;
+}
+
+function applyThreadRename(threadId, name) {
+  if (!threadId || !name) return;
+  const cached = threadCache.find((thread) => thread.id === threadId);
+  if (cached) cached.name = name;
+  if (selectedThread === threadId) threadTitle.textContent = presentThreadTitle(threadId, name);
+  renderThreadList();
+}
+
+async function renameCurrentThread() {
+  if (!selectedThread) {
+    addEntry("error", "名前を変えるには、まずチャットに接続してください。");
+    return;
+  }
+  const current = threadTitle.textContent || presentThreadTitle(selectedThread);
+  const name = window.prompt("新しいスレッド名", current);
+  if (name === null) return;
+  const trimmed = name.replace(/\s+/g, " ").trim();
+  if (!trimmed) return;
+  try {
+    const result = await apiPost("/api/thread/title", { threadId: selectedThread, name: trimmed });
+    applyThreadRename(result.threadId, result.name);
+    addStatus("スレッド名を変更しました。");
+    await loadThreads({ background: true });
+  } catch (error) {
+    addEntry("error", `スレッド名を変更できませんでした: ${error.message}`);
+  }
+}
+
 async function loadThreads({ background = false } = {}) {
   if (!token) return;
   if (background && document.hidden) return;
@@ -1291,6 +1332,10 @@ function connect() {
       applyBridgeState(msg);
       return;
     }
+    if (msg.type === "threadRenamed") {
+      applyThreadRename(msg.threadId, msg.name);
+      return;
+    }
     if (msg.type === "user") {
       liveTurnActive = true;
       assistantEntry = null;
@@ -1423,6 +1468,7 @@ settingsButton.addEventListener("click", showSettings);
 mobileThreadsButton.addEventListener("click", () => document.body.classList.toggle("show-sidebar"));
 sidebarScrim.addEventListener("click", () => document.body.classList.remove("show-sidebar"));
 connectButton.addEventListener("click", connect);
+renameThreadButton.addEventListener("click", renameCurrentThread);
 menuButton.addEventListener("click", () => {
   const desktopPanelVisible =
     window.matchMedia("(min-width: 1101px)").matches && !document.body.classList.contains("hide-artifacts");

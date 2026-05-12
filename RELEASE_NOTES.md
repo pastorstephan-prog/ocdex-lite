@@ -1,4 +1,13 @@
-# Ocdex Lite v1.0.5
+# Ocdex Lite v1.0.6
+
+## v1.0.6
+
+Thread rename update.
+
+- Add a title edit button beside the current thread name on mobile and desktop-style UIs
+- Store manual thread names locally so they survive Ocdex Lite restarts
+- Apply renamed titles consistently in the opened chat, recent-chat list, and connected clients
+- Keep manual titles ahead of Codex/session-file fallback names
 
 ## v1.0.5
 

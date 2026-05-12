@@ -1,6 +1,6 @@
 {
   "name": "ocdex-lite",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Local-first iPhone and iPad PWA remote for Codex running on your Mac.",
   "private": false,
   "type": "commonjs",

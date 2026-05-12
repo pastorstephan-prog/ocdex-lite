@@ -386,6 +386,25 @@ h1 {
   font-weight: 620;
 }
 
+.thread-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.thread-title-row h1 {
+  min-width: 0;
+}
+
+.rename-thread {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  border-radius: 8px;
+}
+
 p {
   margin: 2px 0 0;
   overflow: hidden;
