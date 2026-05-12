@@ -1,0 +1,65 @@
+function compactWhitespace(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function stripTitleNoise(value) {
+  const cleaned = compactWhitespace(value)
+    .replace(/^[-*#>\s]+/, "")
+    .replace(/^reply exactly:\s*/i, "")
+    .replace(/^旧チャットが重すぎて.*?自動引き継ぎします。?/i, "")
+    .replace(/^軽量引き継ぎ[:：]\s*/i, "")
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/`{1,3}[^`]*`{1,3}/g, "")
+    .replace(/\[[^\]]+\]\([^)]+\)/g, "")
+    .replace(/\.(png|jpe?g|gif|webp|heic)\b/gi, "")
+    .trim();
+  return compactWhitespace(cleaned);
+}
+
+function titleExcerpt(value, maxLength = 30) {
+  const firstLine = String(value || "")
+    .split("\n")
+    .map(stripTitleNoise)
+    .find(Boolean);
+  const cleaned = compactWhitespace(firstLine || "");
+  if (!cleaned) return "";
+  return cleaned.length > maxLength ? `${cleaned.slice(0, maxLength)}...` : cleaned;
+}
+
+function shortThreadId(threadId) {
+  const id = String(threadId || "").trim();
+  if (!id) return "";
+  return id.replace(/^thread-/, "").slice(0, 8);
+}
+
+function titleFromRecentMessages(messages = [], fallback = "このプロジェクト") {
+  const candidates = [...messages]
+    .reverse()
+    .filter((message) => message && message.role === "user")
+    .map((message) => titleExcerpt(message.text, 32))
+    .filter(Boolean)
+    .filter((title) => !/^旧thread[:：]/i.test(title) && !/^理由[:：]/i.test(title));
+  return candidates[0] || titleExcerpt(fallback, 32) || "軽量チャット";
+}
+
+function lightweightHandoffTitle({ messages = [], threadId = "", fallback = "このプロジェクト" } = {}) {
+  const topic = titleFromRecentMessages(messages, fallback);
+  const shortId = shortThreadId(threadId);
+  return shortId ? `軽量引き継ぎ: ${topic} (${shortId})` : `軽量引き継ぎ: ${topic}`;
+}
+
+function threadLabelFromHistory(history = [], fallback = "共有チャット") {
+  const firstUser = history.find((entry) => entry.type === "user" && entry.text)?.text || "";
+  if (/^軽量引き継ぎ[:：]/.test(firstUser)) {
+    const firstLine = compactWhitespace(String(firstUser).split("\n").find(Boolean) || "");
+    return firstLine.length > 54 ? `${firstLine.slice(0, 54)}...` : firstLine || fallback;
+  }
+  const raw = firstUser || fallback;
+  return titleExcerpt(raw, 54) || fallback;
+}
+
+module.exports = {
+  lightweightHandoffTitle,
+  threadLabelFromHistory,
+  titleExcerpt,
+};

@@ -9,6 +9,7 @@ const WebSocket = require("ws");
 const { bridgeKeyForRequest, shouldDisposeIdleBridge, shouldPromoteBridgeKey } = require("./bridge-state");
 const { isHistorySyncEnabled, runHistorySync } = require("./history-sync");
 const { bridgeUrls, notifyBridgeUrls } = require("./phone-notify");
+const { lightweightHandoffTitle, threadLabelFromHistory } = require("./thread-title");
 
 const root = path.resolve(__dirname, "..");
 
@@ -43,6 +44,7 @@ const tokenPath = path.join(root, ".phone-token");
 const uploadDir = path.join(root, ".uploads");
 const sessionsDir = path.join(os.homedir(), ".codex", "sessions");
 const bridges = new Map();
+const threadTitleOverrides = new Map();
 const historyLimit = Number(process.env.CODEX_HISTORY_LIMIT || 80);
 const threadListLimit = Number(process.env.CODEX_THREAD_LIST_LIMIT || 80);
 const historySyncLimit = Number(process.env.CODEX_HISTORY_SYNC_LIMIT || 10);
@@ -477,9 +479,9 @@ function sessionHistoryForThread(threadId, limit = historyLimit) {
   return messages.slice(-limit);
 }
 
-function handoffTextForThread(threadId, reason) {
+function handoffForThread(threadId, reason) {
   const filePath = findSessionFileForThread(threadId);
-  if (!filePath) return "";
+  if (!filePath) return { text: "", title: "" };
   const messages = [];
   const pushMessage = (entry) => {
     if (!entry.text) return;
@@ -510,9 +512,12 @@ function handoffTextForThread(threadId, reason) {
     }
   }
   const recent = messages.filter((message) => message.text).slice(-8);
-  if (!recent.length) return "";
+  if (!recent.length) return { text: "", title: "" };
+  const title = lightweightHandoffTitle({ messages: recent, threadId, fallback: projectTitleFromWorkdir() });
   const body = recent.map((message) => `- ${message.role}: ${message.text}`).join("\n");
-  return [
+  const text = [
+    title,
+    "",
     "旧チャットが重すぎてモバイルで安全に再開できなかったため、新しい軽量チャットへ自動引き継ぎします。",
     `旧thread: ${threadId}`,
     `理由: ${reason}`,
@@ -522,6 +527,7 @@ function handoffTextForThread(threadId, reason) {
     "",
     "以後はこの文脈を前提に、ユーザーの次の依頼へ自然に続けてください。必要なら不足分だけ短く確認してください。",
   ].join("\n");
+  return { text, title };
 }
 
 function summarizeItem(item) {
@@ -591,22 +597,17 @@ function projectTitleFromWorkdir(targetWorkdir = workdir) {
   return `${project} の共有チャット`;
 }
 
-function threadLabelFromHistory(history = [], fallback = projectTitleFromWorkdir()) {
-  const firstUser = history.find((entry) => entry.type === "user" && entry.text)?.text || "";
-  const raw = firstUser || fallback;
-  return String(raw).split("\n").find(Boolean)?.trim() || fallback;
-}
-
 function liveBridgeThreads() {
   return Array.from(bridges.values())
     .filter((bridge) => bridge.ready && bridge.threadId)
     .map((bridge) => {
-      const name = threadLabelFromHistory(bridge.history);
+      const override = threadTitleOverrides.get(bridge.threadId);
+      const name = override?.name || threadLabelFromHistory(bridge.history, projectTitleFromWorkdir());
       const lastEntry = [...bridge.history].reverse().find((entry) => entry.text)?.text || "";
       return {
         id: bridge.threadId,
         name,
-        preview: lastEntry.split("\n").find(Boolean) || "Ocdex Lite live chat",
+        preview: override?.preview || lastEntry.split("\n").find(Boolean) || "Ocdex Lite live chat",
         cwd: workdir,
         updatedAt: Date.now(),
         createdAt: Date.now(),
@@ -633,6 +634,7 @@ class SharedBridge {
     this.history = [];
     this.turnQueue = [];
     this.pendingHandoffText = "";
+    this.pendingHandoffTitle = "";
     this.idleDisposeTimer = null;
     this.upstream = null;
     this.startUpstream();
@@ -654,9 +656,10 @@ class SharedBridge {
   }
 
   readyPayload() {
+    const override = this.threadId ? threadTitleOverrides.get(this.threadId) : null;
     return {
       threadId: this.threadId,
-      threadLabel: threadLabelFromHistory(this.history, this.threadId || "共有チャット"),
+      threadLabel: override?.name || threadLabelFromHistory(this.history, this.threadId || "共有チャット"),
       model,
       workdir,
       shared: true,
@@ -738,7 +741,9 @@ class SharedBridge {
 
   restartAsNewThread(reason) {
     const oldThreadId = this.requestedThreadId;
-    this.pendingHandoffText = handoffTextForThread(oldThreadId, reason);
+    const handoff = handoffForThread(oldThreadId, reason);
+    this.pendingHandoffText = handoff.text;
+    this.pendingHandoffTitle = handoff.title;
     this.requestedThreadId = null;
     this.threadId = null;
     this.ready = false;
@@ -853,7 +858,9 @@ class SharedBridge {
               ? "元のthreadの履歴が大きすぎるため、新しい軽量共有threadを開始します。"
               : "元のthreadが見つからないため、新しい共有threadを開始します。";
             this.emit("status", { text: reason });
-            this.pendingHandoffText = handoffTextForThread(this.requestedThreadId, reason);
+            const handoff = handoffForThread(this.requestedThreadId, reason);
+            this.pendingHandoffText = handoff.text;
+            this.pendingHandoffTitle = handoff.title;
             if (this.pendingHandoffText) this.emit("status", { text: "旧チャット末尾から引き継ぎメモを作成しました。" });
             this.requestedThreadId = null;
             this.history = [];
@@ -864,6 +871,12 @@ class SharedBridge {
           return;
         }
         this.threadId = msg.result.thread.id;
+        if (this.pendingHandoffTitle) {
+          threadTitleOverrides.set(this.threadId, {
+            name: this.pendingHandoffTitle,
+            preview: "旧チャットから自動引き継ぎした軽量チャット",
+          });
+        }
         this.promoteBridgeKey();
         this.ready = true;
         if (this.startupGuardTimer) clearTimeout(this.startupGuardTimer);
@@ -875,6 +888,7 @@ class SharedBridge {
         if (this.pendingHandoffText) {
           const handoff = this.pendingHandoffText;
           this.pendingHandoffText = "";
+          this.pendingHandoffTitle = "";
           this.emit("status", { text: "新しい軽量チャットへ引き継ぎを送信します。" });
           this.startPrompt(handoff, [], { approvalPolicy: "on-request", sandboxMode: "workspace-write" });
         }
@@ -1122,7 +1136,10 @@ async function main() {
           archived: false,
           useStateDbOnly: true,
         });
-        const data = Array.isArray(result.data) ? result.data : [];
+        const data = (Array.isArray(result.data) ? result.data : []).map((thread) => {
+          const override = threadTitleOverrides.get(thread.id);
+          return override ? { ...thread, name: override.name, preview: override.preview || thread.preview } : thread;
+        });
         const seen = new Set(data.map((thread) => thread.id));
         const live = liveBridgeThreads().filter((thread) => !seen.has(thread.id));
         result.data = [...live, ...data].slice(0, limit);

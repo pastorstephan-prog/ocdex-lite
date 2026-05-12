@@ -17,7 +17,7 @@
     "screenshots:product": "node scripts/capture-product-screenshots.js",
     "screenshots:readme": "node scripts/capture-readme-screenshots.js",
     "test": "node --test scripts/*.test.js",
-    "check": "node --check scripts/start-phone.js && node --check scripts/probe-ws.js && node --check scripts/reset-token.js && node --check scripts/install-launchagent.js && node --check public/main.js && node --check public/lite.js",
+    "check": "node --check scripts/start-phone.js && node --check scripts/thread-title.js && node --check scripts/probe-ws.js && node --check scripts/reset-token.js && node --check scripts/install-launchagent.js && node --check public/main.js && node --check public/lite.js",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
