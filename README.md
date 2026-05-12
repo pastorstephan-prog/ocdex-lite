@@ -1,5 +1,7 @@
 # Ocdex Lite
 
+![Ocdex Lite hero](docs/assets/ocdex-lite-hero.png)
+
 Use your iPhone or iPad as a lightweight remote for Codex running on your Mac.
 
 Ocdex Lite is a local-first PWA for people who want Codex to keep working on a desktop machine, while they steer it from a phone or tablet. It keeps the Codex app-server on `127.0.0.1`, exposes a small token-protected bridge on your LAN, and serves a mobile-first chat UI at `/lite.html`.

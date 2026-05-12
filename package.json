@@ -13,6 +13,8 @@
     "token:reset": "node scripts/reset-token.js",
     "launchagent:install": "node scripts/install-launchagent.js",
     "simulator:smoke": "node scripts/simulator-smoke.js",
+    "screenshots:hero": "node scripts/capture-brand-hero.js",
+    "screenshots:product": "node scripts/capture-product-screenshots.js",
     "screenshots:readme": "node scripts/capture-readme-screenshots.js",
     "test": "node --test scripts/*.test.js",
     "check": "node --check scripts/start-phone.js && node --check scripts/probe-ws.js && node --check scripts/reset-token.js && node --check scripts/install-launchagent.js && node --check public/main.js && node --check public/lite.js",

@@ -1,5 +1,7 @@
 # Ocdex Lite
 
+![Ocdex Lite hero](docs/assets/ocdex-lite-hero.png)
+
 iPhone/iPadを、Mac上で動くCodexの軽量リモコンにするPWAです。
 
 Ocdex Liteは、CodexをMac上で動かしたまま、スマホやタブレットから軽く指示したい人のためのローカル優先UIです。Codex app-serverは`127.0.0.1`に閉じ、LANに出すのはtoken付きの小さなbridgeだけです。モバイル向け画面は`/lite.html`で開きます。
