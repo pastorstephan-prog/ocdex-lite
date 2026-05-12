@@ -56,7 +56,7 @@ CODEX_WORKDIR=/Users/admin/Prj/some-project npm run phone
 CODEX_MODEL=gpt-5.4 npm run phone
 CODEX_APP_SERVER_SOCK=/Users/admin/.codex/app-server-control/app-server-control.sock npm run phone
 CODEX_APP_SERVER_URL=ws://127.0.0.1:45213 npm run phone
-CODEX_HISTORY_SYNC=0 npm run phone
+CODEX_HISTORY_SYNC=0 npm run phone # optional: disable Codex Desktop history warming
 PHONE_TOKEN=choose-your-own-token npm run phone
 PHONE_NTFY_TOPIC=your-private-topic npm run phone
 PHONE_PUSHOVER_TOKEN=app-token PHONE_PUSHOVER_USER=user-key npm run phone

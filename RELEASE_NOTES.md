@@ -1,4 +1,12 @@
-# Ocdex Lite v1.0.6
+# Ocdex Lite v1.0.7
+
+## v1.0.7
+
+Codex Desktop history visibility update.
+
+- Keep LaunchAgent history sync enabled by default so Ocdex-started threads are warmed for Codex Desktop history
+- Trigger history warming as soon as a thread becomes ready, not only after a completed turn
+- Clarify that `CODEX_HISTORY_SYNC=0` is an optional opt-out for Desktop history warming
 
 ## v1.0.6
 

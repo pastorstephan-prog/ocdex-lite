@@ -967,6 +967,7 @@ class SharedBridge {
         this.history = historyFromThread(msg.result.thread);
         this.emit("ready", this.readyPayload());
         this.emitBridgeState();
+        this.syncHistory("thread ready");
         if (this.requestedThreadId) this.emit("status", { text: `既存threadを再開しました: ${this.threadId}` });
         if (this.pendingHandoffText) {
           const handoff = this.pendingHandoffText;
