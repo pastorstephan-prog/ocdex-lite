@@ -1,11 +1,11 @@
 {
-  "name": "Codex Remote Control Lab",
-  "short_name": "Codex Remote",
-  "description": "Local-first Codex app-server and token-protected phone bridge.",
-  "start_url": "/",
+  "name": "Ocdex Lite",
+  "short_name": "Ocdex Lite",
+  "description": "Use your iPhone or iPad as a lightweight remote for Codex on your Mac.",
+  "start_url": "/lite.html",
   "display": "standalone",
-  "background_color": "#15151a",
-  "theme_color": "#15151a",
+  "background_color": "#f7f7f4",
+  "theme_color": "#f7f7f4",
   "icons": [
     {
       "src": "favicon.svg",

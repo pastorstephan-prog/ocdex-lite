@@ -19,18 +19,18 @@ const mime = new Map([
 ]);
 
 const threads = [
-  { id: "thread-ocdex-v020", name: "OCdex v0.2.0 phone bridge QA", cwd: root, updatedAt: Date.now() },
-  { id: "thread-artifacts", name: "Artifact preview polish", cwd: root, updatedAt: Date.now() - 3600_000 },
-  { id: "thread-mobile", name: "Mobile drawer and compact composer", cwd: root, updatedAt: Date.now() - 86_400_000 },
+  { id: "thread-ocdex-goal", name: "Ocdex Lite launch goal", cwd: root, updatedAt: Date.now() },
+  { id: "thread-history", name: "History sync and links", cwd: root, updatedAt: Date.now() - 3600_000 },
+  { id: "thread-mobile", name: "iPhone composer polish", cwd: root, updatedAt: Date.now() - 86_400_000 },
 ];
 
 const history = [
   { type: "user", text: "README のスクリーンショットを最新版に差し替えて。" },
   {
     type: "assistant",
-    text: "最新版の bridge UI で撮り直しました。\n\n- headless app-server 接続\n- 履歴同期\n- artifact preview\n- mobile drawer / compact composer",
+    text: "Ocdex Lite の公開用UIで撮り直しました。\n\n- LAN token bridge\n- 履歴同期\n- clickable links\n- compact composer",
   },
-  { type: "status", text: "履歴同期を更新しました。Desktop Remote Connection から再表示できます。" },
+  { type: "status", text: "履歴同期を更新しました。Ocdex Lite から再表示できます。" },
 ];
 
 const artifacts = [
@@ -127,7 +127,7 @@ async function mockApi(page, origin) {
         json: {
           path: requested,
           kind: "markdown",
-          text: "# Codex Remote Control Lab\n\n![Desktop UI](docs/assets/desktop-like-ui-desktop.png)\n\nLocal-first bridge UI with artifact previews and mobile controls.",
+          text: "# Ocdex Lite\n\n![Mobile UI](docs/assets/ocdex-lite-iphone.png)\n\nLocal-first mobile PWA for Codex on your Mac.",
         },
       });
     }

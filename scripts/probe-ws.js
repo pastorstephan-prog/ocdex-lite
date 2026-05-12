@@ -30,8 +30,8 @@ ws.on("open", () => {
     id: 1,
     params: {
       clientInfo: {
-        name: "codex-remote-control-lab",
-        title: "Codex Remote Control Lab",
+        name: "ocdex-lite",
+        title: "Ocdex Lite",
         version: "0.1.0",
       },
     },
