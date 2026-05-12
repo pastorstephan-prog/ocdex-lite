@@ -49,6 +49,7 @@ const selectedThreadPollMs = lightMode ? 0 : 3_000;
 const reconnectDelayMs = lightMode ? 12_000 : 2_000;
 const foregroundRefreshCooldownMs = lightMode ? 120_000 : 0;
 let reconnectTimer = null;
+let reconnectAttempt = 0;
 let lastForegroundRefreshAt = 0;
 
 const themeOptions = [
@@ -85,6 +86,7 @@ const maxImageEdge = 1280;
 const imageJpegQuality = 0.72;
 const maxAttachmentBytes = 2 * 1024 * 1024;
 const maxPromptPayloadBytes = 7 * 1024 * 1024;
+const draftStoragePrefix = "ocdexDraft";
 
 const runStateText = {
   connecting: "接続中",
@@ -104,6 +106,21 @@ function setRunState(state, label) {
   if (runState.dataset.state === state && runStateLabel.textContent === nextLabel) return;
   runState.dataset.state = state;
   runStateLabel.textContent = nextLabel;
+}
+
+function currentDraftKey() {
+  return `${draftStoragePrefix}:${token || "no-token"}:${selectedThread || "new"}`;
+}
+
+function savePromptDraft() {
+  const value = promptInput.value || "";
+  const key = currentDraftKey();
+  if (value.trim()) localStorage.setItem(key, value);
+  else localStorage.removeItem(key);
+}
+
+function restorePromptDraft() {
+  promptInput.value = localStorage.getItem(currentDraftKey()) || "";
 }
 
 function applyTheme(themeId) {
@@ -170,8 +187,21 @@ function selectModel(model) {
 }
 
 function titleForThread(thread) {
-  const raw = thread.name || thread.preview || thread.cwd || thread.id;
+  const raw = thread.name || projectTitleFromPath(thread.cwd) || thread.id;
   const firstLine = raw.split("\n").find(Boolean) || thread.id;
+  return firstLine.length > 54 ? `${firstLine.slice(0, 54)}...` : firstLine;
+}
+
+function projectTitleFromPath(targetPath = "") {
+  const normalized = String(targetPath || "").replace(/\/+$/, "");
+  const project = normalized.split("/").filter(Boolean).pop() || "このプロジェクト";
+  return `${project} の共有チャット`;
+}
+
+function presentThreadTitle(threadId, threadLabel = "") {
+  const selected = threadCache.find((thread) => thread.id === threadId);
+  const raw = selected ? titleForThread(selected) : threadLabel || "共有チャット";
+  const firstLine = String(raw).split("\n").find(Boolean) || "新しい共有thread";
   return firstLine.length > 54 ? `${firstLine.slice(0, 54)}...` : firstLine;
 }
 
@@ -192,6 +222,25 @@ function formatRelativeTime(timestamp) {
   if (hours < 24) return `${hours}時間`;
   if (days < 30) return `${days}日`;
   return `${months || 1}か月`;
+}
+
+function normalizeSearchText(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[\s._/-]+/g, " ")
+    .trim();
+}
+
+function searchableThreadText(thread) {
+  return normalizeSearchText([titleForThread(thread), projectForThread(thread), thread.preview, thread.cwd, thread.id].filter(Boolean).join(" "));
+}
+
+function threadMatchesQuery(thread, query) {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) return true;
+  const target = searchableThreadText(thread);
+  return normalizedQuery.split(/\s+/).every((part) => target.includes(part));
 }
 
 function isBlockStart(line) {
@@ -637,7 +686,7 @@ function maybeRefreshForeground() {
 
 function renderThreadList() {
   threadList.replaceChildren();
-  const query = threadSearch.value.trim().toLowerCase();
+  const query = threadSearch.value;
   const newProject = document.createElement("button");
   newProject.type = "button";
   newProject.className = selectedThread ? "project-heading new-project" : "project-heading new-project active";
@@ -648,9 +697,7 @@ function renderThreadList() {
   const groups = new Map();
   for (const thread of threadCache) {
     const project = projectForThread(thread);
-    const title = titleForThread(thread);
-    const matches = !query || project.toLowerCase().includes(query) || title.toLowerCase().includes(query);
-    if (!matches) continue;
+    if (!threadMatchesQuery(thread, query)) continue;
     if (!groups.has(project)) groups.set(project, []);
     groups.get(project).push(thread);
   }
@@ -719,6 +766,7 @@ async function loadThreads({ background = false } = {}) {
     const result = await apiGet("/api/threads");
     threadCache = result.data || [];
     renderThreadList();
+    if (selectedThread) threadTitle.textContent = presentThreadTitle(selectedThread);
     lastThreadListError = "";
   } catch (error) {
     const message = error.message || String(error);
@@ -767,20 +815,25 @@ function updateUrlThread() {
   history.replaceState(null, "", next);
 }
 
-function syncReadyThread(threadId) {
+function syncReadyThread(threadId, threadLabel = "") {
   if (!threadId || selectedThread === threadId) return;
+  savePromptDraft();
+  lastHistorySignature = "";
+  renderHistory([]);
   selectedThread = threadId;
   updateUrlThread();
-  const selected = threadCache.find((thread) => thread.id === selectedThread);
-  threadTitle.textContent = selected ? titleForThread(selected) : selectedThread;
+  threadTitle.textContent = presentThreadTitle(selectedThread, threadLabel);
   renderThreadList();
+  restorePromptDraft();
 }
 
 function selectThread(threadId) {
+  savePromptDraft();
   selectedThread = threadId;
   updateUrlThread();
   renderThreadList();
   document.body.classList.remove("show-sidebar");
+  restorePromptDraft();
   connect();
 }
 
@@ -988,6 +1041,7 @@ function startVoiceInput() {
     const transcript = event.results?.[0]?.[0]?.transcript || "";
     if (!transcript) return;
     promptInput.value = `${promptInput.value}${promptInput.value ? "\n" : ""}${transcript}`;
+    savePromptDraft();
     promptInput.focus();
     addStatus("音声入力をテキストへ追加しました。");
   });
@@ -1172,26 +1226,33 @@ function connect() {
     lastHistorySignature = "";
     renderHistory([]);
   }
-  const selected = threadCache.find((thread) => thread.id === selectedThread);
-  threadTitle.textContent = selected ? titleForThread(selected) : "新しい共有thread";
+  threadTitle.textContent = presentThreadTitle(selectedThread);
 
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
   const threadParam = selectedThread ? `&thread=${encodeURIComponent(selectedThread)}` : "";
-  ws = new WebSocket(`${proto}//${location.host}/bridge?token=${encodeURIComponent(token)}${threadParam}`);
+  const socket = new WebSocket(`${proto}//${location.host}/bridge?token=${encodeURIComponent(token)}${threadParam}`);
+  ws = socket;
   connectButton.disabled = true;
   meta.textContent = "接続中";
 
-  ws.addEventListener("open", () => {
+  socket.addEventListener("open", () => {
+    reconnectAttempt = 0;
     setRunState("connecting", "Codex に接続中");
     lastForegroundRefreshAt = Date.now();
     addEntry("status", "Macの共有ブリッジへ接続しました。");
   });
 
-  ws.addEventListener("message", (event) => {
-    const msg = JSON.parse(event.data);
+  socket.addEventListener("message", (event) => {
+    let msg;
+    try {
+      msg = JSON.parse(event.data);
+    } catch (error) {
+      addEntry("error", `壊れた通信メッセージを受信しました: ${error.message}`);
+      return;
+    }
     if (msg.type === "ready") {
       setReady(true);
-      syncReadyThread(msg.threadId);
+      syncReadyThread(msg.threadId, msg.threadLabel);
       renderHistoryIfChanged(msg.history || []);
       meta.textContent = `${msg.model}  •  ${msg.clients}端末  •  ${msg.workdir}`;
       setRunState("ready");
@@ -1244,17 +1305,26 @@ function connect() {
     }
   });
 
-  ws.addEventListener("close", () => {
+  socket.addEventListener("close", () => {
+    if (socket !== ws) return;
     setReady(false);
     connectButton.disabled = false;
     meta.textContent = "切断";
     setRunState("disconnected");
     if (token && !document.hidden) {
+      reconnectAttempt += 1;
+      const delay = Math.min(20_000, reconnectDelayMs * 2 ** Math.min(reconnectAttempt - 1, 4));
+      setRunState("disconnected", `切断・${Math.round(delay / 1000)}秒後に再接続`);
       reconnectTimer = setTimeout(() => {
         reconnectTimer = null;
         connect();
-      }, reconnectDelayMs);
+      }, delay);
     }
+  });
+
+  socket.addEventListener("error", () => {
+    if (socket !== ws) return;
+    setRunState("error", "通信エラー");
   });
 }
 
@@ -1285,9 +1355,11 @@ composer.addEventListener("submit", (event) => {
     return;
   }
   promptInput.value = "";
+  savePromptDraft();
   pendingFiles = [];
   renderAttachments();
 });
+promptInput.addEventListener("input", savePromptDraft);
 
 approveButton.addEventListener("click", () => {
   if (!pendingApproval) return;
@@ -1386,6 +1458,7 @@ document.addEventListener("click", (event) => {
 statusButton.addEventListener("click", showStatus);
 webSearchButton.addEventListener("click", () => {
   promptInput.value = `${promptInput.value}${promptInput.value ? "\n" : ""}Web調査を使って確認してください。`;
+  savePromptDraft();
   promptInput.focus();
 });
 document.addEventListener("visibilitychange", () => {
@@ -1406,6 +1479,7 @@ for (const button of artifactButtons) {
 
 setReady(false);
 updateModelButton();
+restorePromptDraft();
 if (!lightMode) loadArtifacts();
 loadThreads().catch(() => {}).finally(connect);
 if (threadPollMs > 0) setInterval(() => loadThreads({ background: true }), threadPollMs);

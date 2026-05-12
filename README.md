@@ -84,11 +84,14 @@ CODEX_UPLOAD_MAX_MB=12 npm run phone
 ```bash
 npm run token:reset
 npm run launchagent:install -- --workdir "/path/to/project"
+npm run simulator:smoke
 ```
 
 `token:reset` rotates `.phone-token`. Existing phone URLs stop working after rotation.
 
 `launchagent:install` creates a macOS LaunchAgent that starts Ocdex Lite at login and restarts it if it crashes.
+
+`simulator:smoke` opens `/lite.html` in available Xcode iPhone/iPad simulators, saves screenshots, and prints bridge readiness. It is useful for quick release checks, but it does not replace real-device Wi-Fi, Tailscale, or lock-screen testing.
 
 ## Architecture
 

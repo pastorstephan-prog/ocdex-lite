@@ -4,6 +4,7 @@ if (token) localStorage.setItem("codexPhoneToken", token);
 
 const log = document.querySelector("#log");
 const meta = document.querySelector("#meta");
+const threadTitle = document.querySelector("#threadTitle");
 const state = document.querySelector("#state");
 const stateLabel = document.querySelector("#stateLabel");
 const composer = document.querySelector("#composer");
@@ -36,6 +37,8 @@ let lastError = "";
 let reconnects = 0;
 let threadsLoaded = false;
 let connectionSeq = 0;
+const threadListCache = new Map();
+const draftStoragePrefix = "ocdexDraft";
 
 const maxImageEdge = 1280;
 const imageQuality = 0.72;
@@ -125,10 +128,37 @@ function setReady(ready) {
   promptInput.disabled = !ready;
 }
 
+function currentDraftKey() {
+  return `${draftStoragePrefix}:${token || "no-token"}:${threadId || "new"}`;
+}
+
+function savePromptDraft() {
+  const value = promptInput.value || "";
+  const key = currentDraftKey();
+  if (value.trim()) localStorage.setItem(key, value);
+  else localStorage.removeItem(key);
+}
+
+function restorePromptDraft() {
+  promptInput.value = localStorage.getItem(currentDraftKey()) || "";
+}
+
 function titleForThread(thread) {
-  const raw = thread.name || thread.preview || thread.cwd || thread.id || "チャット";
+  const raw = thread.name || projectTitleFromPath(thread.cwd) || thread.id || "チャット";
   const firstLine = String(raw).split("\n").find(Boolean) || thread.id || "チャット";
   return firstLine.length > 52 ? `${firstLine.slice(0, 52)}...` : firstLine;
+}
+
+function projectTitleFromPath(targetPath = "") {
+  const normalized = String(targetPath || "").replace(/\/+$/, "");
+  const project = normalized.split("/").filter(Boolean).pop() || "このプロジェクト";
+  return `${project} の共有チャット`;
+}
+
+function setCurrentThreadTitle(label) {
+  const next = String(label || "").trim() || "共有チャット";
+  threadTitle.textContent = next;
+  document.title = `${next} | Ocdex Lite`;
 }
 
 function projectForThread(thread) {
@@ -158,6 +188,7 @@ async function apiGet(path) {
 
 function renderThreads(threads = []) {
   threadsList.replaceChildren();
+  threadListCache.clear();
   if (!threads.length) {
     const empty = document.createElement("div");
     empty.className = "thread-choice";
@@ -166,11 +197,13 @@ function renderThreads(threads = []) {
     return;
   }
   for (const thread of threads) {
+    const label = titleForThread(thread);
+    threadListCache.set(thread.id, label);
     const button = document.createElement("button");
     button.type = "button";
     button.className = "thread-choice";
     const title = document.createElement("strong");
-    title.textContent = titleForThread(thread);
+    title.textContent = label;
     const detail = document.createElement("span");
     detail.textContent = `${projectForThread(thread)} / ${relativeTime(thread.updatedAt || thread.createdAt)}`;
     button.append(title, detail);
@@ -183,6 +216,7 @@ async function loadThreads() {
   threadsList.textContent = "読み込み中...";
   const result = await apiGet("/api/threads?limit=8");
   renderThreads(result.data || []);
+  if (threadId && threadListCache.has(threadId)) setCurrentThreadTitle(threadListCache.get(threadId));
   threadsLoaded = true;
 }
 
@@ -200,7 +234,10 @@ async function toggleThreads() {
 
 async function openThread(nextThreadId) {
   if (!nextThreadId) return;
+  savePromptDraft();
   threadId = nextThreadId;
+  setCurrentThreadTitle(threadListCache.get(nextThreadId) || "チャットを読み込み中");
+  restorePromptDraft();
   threadsPanel.classList.add("hidden");
   setState("connecting", "履歴を読み込み中");
   try {
@@ -215,6 +252,10 @@ async function openThread(nextThreadId) {
 function renderHistory(history = []) {
   log.replaceChildren();
   for (const entry of history.slice(-12)) addEntry(entry.type, entry.text, entry.attachments || []);
+}
+
+function updateThreadUrl() {
+  history.replaceState(null, "", `?token=${encodeURIComponent(token)}${threadId ? `&thread=${encodeURIComponent(threadId)}` : ""}`);
 }
 
 function connect() {
@@ -234,6 +275,7 @@ function connect() {
   }
   setReady(false);
   setState("connecting", "Codexに接続中");
+  if (!threadId) setCurrentThreadTitle("共有チャット");
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
   const threadParam = threadId ? `&thread=${encodeURIComponent(threadId)}` : "";
   const socket = new WebSocket(`${proto}//${location.host}/bridge?token=${encodeURIComponent(token)}${threadParam}`);
@@ -248,12 +290,24 @@ function connect() {
 
   socket.addEventListener("message", (event) => {
     if (socket !== ws || seq !== connectionSeq) return;
-    const msg = JSON.parse(event.data);
+    let msg;
+    try {
+      msg = JSON.parse(event.data);
+    } catch (error) {
+      addEntry("error", `壊れた通信メッセージを受信しました: ${error.message}`);
+      return;
+    }
     if (msg.type === "ready") {
       const previousThreadId = threadId;
       threadId = msg.threadId || threadId;
-      if (threadId && threadId !== previousThreadId) threadsLoaded = false;
-      history.replaceState(null, "", `?token=${encodeURIComponent(token)}${threadId ? `&thread=${encodeURIComponent(threadId)}` : ""}`);
+      setCurrentThreadTitle(threadListCache.get(threadId) || msg.threadLabel || projectTitleFromPath(msg.workdir) || "共有チャット");
+      if (threadId && threadId !== previousThreadId) {
+        threadsLoaded = false;
+        log.replaceChildren();
+        lastError = "";
+      }
+      loadThreads().catch(() => {});
+      updateThreadUrl();
       renderHistory(msg.history || []);
       setReady(true);
       setState("ready", "待機中");
@@ -420,6 +474,7 @@ function sendPrompt() {
     }),
   );
   promptInput.value = "";
+  savePromptDraft();
   pendingFiles = [];
   renderAttachments();
 }
@@ -428,6 +483,7 @@ composer.addEventListener("submit", (event) => {
   event.preventDefault();
   sendPrompt();
 });
+promptInput.addEventListener("input", savePromptDraft);
 
 attachButton.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", async () => {
@@ -466,9 +522,12 @@ declineButton.addEventListener("click", () => {
 });
 
 newThreadButton.addEventListener("click", () => {
+  savePromptDraft();
   threadId = "";
   threadsLoaded = false;
-  history.replaceState(null, "", `?token=${encodeURIComponent(token)}`);
+  setCurrentThreadTitle("共有チャット");
+  restorePromptDraft();
+  updateThreadUrl();
   log.replaceChildren();
   threadsPanel.classList.add("hidden");
   connect();
@@ -494,6 +553,7 @@ voiceButton.addEventListener("click", () => {
       .map((result) => result[0]?.transcript || "")
       .join("");
     promptInput.value = `${promptInput.value}${promptInput.value ? "\n" : ""}${text}`.trim();
+    savePromptDraft();
     setState("ready", "音声入力完了");
   };
   recognition.start();
@@ -507,4 +567,5 @@ window.addEventListener("online", () => {
 });
 
 setReady(false);
+restorePromptDraft();
 connect();

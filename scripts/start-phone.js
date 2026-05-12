@@ -43,10 +43,11 @@ const tokenPath = path.join(root, ".phone-token");
 const uploadDir = path.join(root, ".uploads");
 const bridges = new Map();
 const historyLimit = Number(process.env.CODEX_HISTORY_LIMIT || 30);
-const threadListLimit = Number(process.env.CODEX_THREAD_LIST_LIMIT || 12);
+const threadListLimit = Number(process.env.CODEX_THREAD_LIST_LIMIT || 80);
 const historySyncLimit = Number(process.env.CODEX_HISTORY_SYNC_LIMIT || 10);
 const wsMaxPayload = Number(process.env.CODEX_WS_MAX_PAYLOAD_MB || 256) * 1024 * 1024;
 const uploadMaxBytes = Number(process.env.CODEX_UPLOAD_MAX_MB || 12) * 1024 * 1024;
+const bridgeIdleDisposeMs = Number(process.env.CODEX_BRIDGE_IDLE_DISPOSE_MS || 10 * 60 * 1000);
 const imageExtensions = new Map([
   [".png", "image/png"],
   [".jpg", "image/jpeg"],
@@ -180,7 +181,13 @@ class AppServerRpcClient {
   }
 
   handleMessage(data) {
-    const msg = JSON.parse(data.toString());
+    let msg;
+    try {
+      msg = JSON.parse(data.toString());
+    } catch (error) {
+      this.reset(new Error(`Invalid Codex app-server message: ${error.message}`));
+      return;
+    }
     if (!msg.id || !this.pending.has(msg.id)) return;
     const pending = this.pending.get(msg.id);
     this.pending.delete(msg.id);
@@ -217,10 +224,6 @@ function startCodexServer() {
   child.stderr.on("data", (chunk) => process.stderr.write(`[codex] ${chunk}`));
   child.on("exit", (code, signal) => {
     console.error(`[codex] exited code=${code} signal=${signal}`);
-  });
-  process.on("SIGINT", () => {
-    child.kill("SIGINT");
-    process.exit(0);
   });
   return child;
 }
@@ -461,15 +464,27 @@ function capHistory(history) {
   return history.slice(-historyLimit);
 }
 
+function projectTitleFromWorkdir(targetWorkdir = workdir) {
+  const cwd = String(targetWorkdir || "").replace(/\/+$/, "");
+  const project = cwd.split("/").filter(Boolean).pop() || "このプロジェクト";
+  return `${project} の共有チャット`;
+}
+
+function threadLabelFromHistory(history = [], fallback = projectTitleFromWorkdir()) {
+  const firstUser = history.find((entry) => entry.type === "user" && entry.text)?.text || "";
+  const raw = firstUser || fallback;
+  return String(raw).split("\n").find(Boolean)?.trim() || fallback;
+}
+
 function liveBridgeThreads() {
   return Array.from(bridges.values())
     .filter((bridge) => bridge.ready && bridge.threadId)
     .map((bridge) => {
-      const firstUser = bridge.history.find((entry) => entry.type === "user")?.text || "";
+      const name = threadLabelFromHistory(bridge.history);
       const lastEntry = [...bridge.history].reverse().find((entry) => entry.text)?.text || "";
       return {
         id: bridge.threadId,
-        name: firstUser.split("\n").find(Boolean) || "Ocdex Lite live chat",
+        name,
         preview: lastEntry.split("\n").find(Boolean) || "Ocdex Lite live chat",
         cwd: workdir,
         updatedAt: Date.now(),
@@ -491,11 +506,13 @@ class SharedBridge {
     this.ready = false;
     this.history = [];
     this.turnQueue = [];
+    this.idleDisposeTimer = null;
     this.upstream = createUpstreamWebSocket();
     this.bindUpstream();
   }
 
   addClient(browser) {
+    this.cancelIdleDispose();
     this.clients.add(browser);
     this.emitTo(browser, "status", { text: "共有Codexブリッジに参加しました。" });
     if (this.ready) {
@@ -503,16 +520,14 @@ class SharedBridge {
     }
     browser.on("close", () => {
       this.clients.delete(browser);
-      if (shouldDisposeIdleBridge({ clientCount: this.clients.size, ready: this.ready })) {
-        this.upstream.close();
-        bridges.delete(this.bridgeKey);
-      }
+      this.maybeScheduleIdleDispose();
     });
   }
 
   readyPayload() {
     return {
       threadId: this.threadId,
+      threadLabel: threadLabelFromHistory(this.history, this.threadId || "共有チャット"),
       model,
       workdir,
       shared: true,
@@ -542,6 +557,42 @@ class SharedBridge {
     return Array.from(this.pending.values()).includes("turn/start");
   }
 
+  cancelIdleDispose() {
+    if (!this.idleDisposeTimer) return;
+    clearTimeout(this.idleDisposeTimer);
+    this.idleDisposeTimer = null;
+  }
+
+  maybeScheduleIdleDispose() {
+    if (
+      !shouldDisposeIdleBridge({
+        clientCount: this.clients.size,
+        activeTurnId: this.activeTurnId,
+        pendingTurnStart: this.hasPendingTurnStart(),
+        queuedTurns: this.turnQueue.length,
+      })
+    ) {
+      return;
+    }
+    if (this.idleDisposeTimer) return;
+    this.idleDisposeTimer = setTimeout(() => {
+      this.idleDisposeTimer = null;
+      if (
+        !shouldDisposeIdleBridge({
+          clientCount: this.clients.size,
+          activeTurnId: this.activeTurnId,
+          pendingTurnStart: this.hasPendingTurnStart(),
+          queuedTurns: this.turnQueue.length,
+        })
+      ) {
+        return;
+      }
+      this.upstream.close();
+      bridges.delete(this.bridgeKey);
+    }, bridgeIdleDisposeMs);
+    this.idleDisposeTimer.unref?.();
+  }
+
   promoteBridgeKey() {
     if (!shouldPromoteBridgeKey({ bridgeKey: this.bridgeKey, threadId: this.threadId })) return;
     const previousKey = this.bridgeKey;
@@ -558,34 +609,32 @@ class SharedBridge {
         clientInfo: { name: "codex-phone-bridge", title: "Codex Phone Bridge", version: "0.1.0" },
       });
       this.upstream.send(JSON.stringify({ method: "initialized", params: {} }));
-      const method = this.requestedThreadId ? "thread/resume" : "thread/start";
-      const params = this.requestedThreadId
-        ? {
-            threadId: this.requestedThreadId,
-            model,
-            cwd: workdir,
-            approvalPolicy: "on-request",
-            sandbox: "workspace-write",
-          }
-        : {
-            model,
-            cwd: workdir,
-            approvalPolicy: "on-request",
-            sandbox: "workspace-write",
-          };
-      const id = this.request(method, params);
-      this.pending.set(id, method);
+      this.startCodexThread(this.requestedThreadId ? "thread/resume" : "thread/start");
       this.emit("status", { text: this.requestedThreadId ? "既存threadを再開中..." : "新しいthreadを開始中..." });
     });
 
     this.upstream.on("message", (data) => {
-      const msg = JSON.parse(data.toString());
+      let msg;
+      try {
+        msg = JSON.parse(data.toString());
+      } catch (error) {
+        this.emit("error", { text: `Codexから壊れた通信メッセージを受信しました: ${error.message}` });
+        return;
+      }
       const pendingMethod = this.pending.get(msg.id);
 
       if (pendingMethod === "thread/start" || pendingMethod === "thread/resume") {
         this.pending.delete(msg.id);
         if (msg.error) {
-          this.emit("error", { text: msg.error.message || JSON.stringify(msg.error) });
+          const message = msg.error.message || JSON.stringify(msg.error);
+          if (pendingMethod === "thread/resume" && /no rollout found|not found/i.test(message)) {
+            this.emit("status", { text: "元のthreadが見つからないため、新しい共有threadを開始します。" });
+            this.requestedThreadId = null;
+            this.history = [];
+            this.startCodexThread("thread/start");
+            return;
+          }
+          this.emit("error", { text: message });
           return;
         }
         this.threadId = msg.result.thread.id;
@@ -602,6 +651,7 @@ class SharedBridge {
         if (msg.error) {
           this.emit("error", { text: msg.error.message || JSON.stringify(msg.error) });
           this.startNextQueuedTurn();
+          this.maybeScheduleIdleDispose();
         } else {
           this.activeTurnId = msg.result.turn.id;
           this.emit("turn", { status: "started", turnId: this.activeTurnId });
@@ -634,6 +684,7 @@ class SharedBridge {
         this.emit("turn", { status: "completed", turnId: msg.params.turnId });
         this.syncHistory("turn completed");
         this.startNextQueuedTurn();
+        this.maybeScheduleIdleDispose();
         return;
       }
 
@@ -688,7 +739,27 @@ class SharedBridge {
       })
       .catch((error) => {
         this.emit("status", { text: `履歴同期に失敗しました: ${error.message}` });
-      });
+    });
+  }
+
+  startCodexThread(method) {
+    const params =
+      method === "thread/resume"
+        ? {
+            threadId: this.requestedThreadId,
+            model,
+            cwd: workdir,
+            approvalPolicy: "on-request",
+            sandbox: "workspace-write",
+          }
+        : {
+            model,
+            cwd: workdir,
+            approvalPolicy: "on-request",
+            sandbox: "workspace-write",
+          };
+    const id = this.request(method, params);
+    this.pending.set(id, method);
   }
 
   startPrompt(text, attachments = [], options = {}) {
@@ -754,7 +825,14 @@ function bindBrowser(browser, phoneToken, threadId) {
   bridge.addClient(browser);
 
   browser.on("message", (data) => {
-    const msg = JSON.parse(data.toString());
+    let msg;
+    try {
+      msg = JSON.parse(data.toString());
+    } catch (error) {
+      bridge.emitTo(browser, "error", { text: `Invalid message: ${error.message}` });
+      browser.close();
+      return;
+    }
     if (msg.token !== phoneToken) {
       bridge.emitTo(browser, "error", { text: "Invalid token" });
       browser.close();
@@ -780,13 +858,14 @@ async function main() {
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
     if (url.pathname === "/api/info") {
+      if (!requireToken(url, phoneToken, res)) return;
       sendJson(res, 200, { model, workdir, codexUrl, codexSocketPath: codexSocketPath || null, managedCodexServer: shouldStartCodexServer, tokenRequired: true });
       return;
     }
     if (url.pathname === "/api/threads") {
       if (!requireToken(url, phoneToken, res)) return;
       try {
-        const limit = Math.max(1, Math.min(20, Number(url.searchParams.get("limit") || threadListLimit)));
+        const limit = Math.max(1, Math.min(80, Number(url.searchParams.get("limit") || threadListLimit)));
         const result = await appServerRequest("thread/list", {
           limit,
           sortKey: "updated_at",
@@ -858,6 +937,9 @@ async function main() {
           threadId: bridge.threadId,
           clients: bridge.clients.size,
           ready: bridge.ready,
+          activeTurn: Boolean(bridge.activeTurnId),
+          pendingTurnStart: bridge.hasPendingTurnStart(),
+          queuedTurns: bridge.turnQueue.length,
         })),
       });
       return;
@@ -1004,6 +1086,17 @@ async function main() {
     wss.handleUpgrade(req, socket, head, (ws) => bindBrowser(ws, phoneToken, threadId));
   });
 
+  server.on("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(`[ocdex] port ${uiPort} is already in use. Another Ocdex Lite bridge is probably already running.`);
+      console.error(`[ocdex] open the existing bridge URL, stop the old process, or start with PHONE_UI_PORT=<other-port> npm run phone.`);
+    } else {
+      console.error(`[ocdex] server error: ${error.message}`);
+    }
+    if (codex) codex.kill("SIGINT");
+    process.exit(1);
+  });
+
   server.listen(uiPort, "0.0.0.0", () => {
     const urls = bridgeUrls(lanAddresses(), uiPort, phoneToken);
     console.log("");
@@ -1024,6 +1117,14 @@ async function main() {
     });
   });
 
+  const shutdown = () => {
+    if (codex) codex.kill("SIGINT");
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 1500).unref();
+  };
+
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
   process.on("exit", () => {
     if (codex) codex.kill("SIGINT");
   });

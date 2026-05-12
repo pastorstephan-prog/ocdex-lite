@@ -1,44 +1,44 @@
 :root {
   color-scheme: light;
   font-family:
-    ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    "Avenir Next", "Hiragino Sans", "Yu Gothic", sans-serif;
   background: var(--bg);
   color: var(--text);
-  --bg: #ffffff;
-  --text: #181818;
-  --sidebar: #f4f4f3;
-  --sidebar-start: #f2f3f2;
-  --sidebar-end: #f7f4f0;
-  --line: #e7e7e4;
-  --muted: #777772;
-  --soft: #f7f7f5;
-  --card: #ffffff;
-  --panel: #fbfbfa;
-  --accent: #ff5d22;
-  --button: #202020;
-  --button-text: #ffffff;
-  --nav-text: #343433;
-  --nav-muted: #464641;
-  --hover: rgba(0, 0, 0, 0.055);
-  --field: rgba(255, 255, 255, 0.84);
-  --entry: #22221f;
-  --avatar: #f0f0ed;
-  --avatar-text: #777772;
-  --code-bg: #efefec;
-  --code-text: #272724;
-  --quote: #d9d9d4;
-  --link: #0b65c2;
-  --composer-bg: rgba(255, 255, 255, 0.96);
-  --composer-border: #dadad6;
-  --composer-shadow: 0 16px 38px rgba(0, 0, 0, 0.08);
-  --scrim: rgba(0, 0, 0, 0.12);
-  --warning-line: #f0b36b;
-  --warning-bg: #fff8ed;
-  --warning-text: #5b4632;
-  --error: #b33122;
-  --state-ready: #266b42;
-  --state-running: #0b65c2;
-  --state-approval: #8f4c00;
+  --bg: #f7f3ea;
+  --text: #234457;
+  --sidebar: #eaf2f1;
+  --sidebar-start: #edf4f5;
+  --sidebar-end: #f8f3e8;
+  --line: #cbdde1;
+  --muted: #6d8a96;
+  --soft: #f3f8f7;
+  --card: #fffdf8;
+  --panel: #f6faf9;
+  --accent: #e07b63;
+  --button: #2f6f97;
+  --button-text: #fdfcf7;
+  --nav-text: #24495d;
+  --nav-muted: #6f8993;
+  --hover: rgba(47, 111, 151, 0.08);
+  --field: rgba(255, 253, 248, 0.9);
+  --entry: #234457;
+  --avatar: #dceced;
+  --avatar-text: #2f6f97;
+  --code-bg: #edf5f6;
+  --code-text: #24495d;
+  --quote: #9dcbd2;
+  --link: #2f6f97;
+  --composer-bg: rgba(255, 253, 248, 0.97);
+  --composer-border: #c7dde1;
+  --composer-shadow: 0 16px 38px rgba(41, 93, 119, 0.12);
+  --scrim: rgba(35, 68, 87, 0.14);
+  --warning-line: #d9a15d;
+  --warning-bg: #fff7eb;
+  --warning-text: #6a5340;
+  --error: #bf5a4e;
+  --state-ready: #2f8c87;
+  --state-running: #2f6f97;
+  --state-approval: #c47a3d;
 }
 
 :root[data-theme="cyberpunk"] {
@@ -125,7 +125,11 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.64), transparent 22%),
+    radial-gradient(circle at 84% 12%, rgba(125, 205, 219, 0.16), transparent 18%),
+    radial-gradient(circle at bottom right, rgba(224, 123, 99, 0.08), transparent 18%),
+    var(--bg);
   overflow: hidden;
 }
 
@@ -294,6 +298,7 @@ button.project-heading.active {
 .thread-item.active {
   color: var(--text);
   font-weight: 560;
+  box-shadow: inset 2px 0 0 var(--button);
 }
 
 .thread-title {
@@ -358,6 +363,20 @@ button.project-heading.active {
   min-width: 0;
 }
 
+.brand-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin-bottom: 4px;
+}
+
+.brand-wordmark-image {
+  display: block;
+  width: min(250px, 100%);
+  max-width: 100%;
+  height: auto;
+}
+
 h1 {
   margin: 0;
   overflow: hidden;
@@ -388,6 +407,13 @@ p {
   border-radius: 10px;
   background: var(--card);
   color: var(--muted);
+}
+
+.icon-button:hover,
+.icon-button:focus-visible {
+  border-color: color-mix(in srgb, var(--button) 36%, var(--line));
+  background: color-mix(in srgb, var(--button) 7%, var(--card));
+  color: var(--button);
 }
 
 .content-grid {
@@ -890,7 +916,7 @@ textarea::placeholder {
 }
 
 .access-button {
-  color: var(--accent);
+  color: var(--button);
 }
 
 .model-button {
@@ -1010,7 +1036,7 @@ textarea::placeholder {
 
 .model-menu-row:hover,
 .model-menu-row.active {
-  background: var(--soft);
+  background: color-mix(in srgb, var(--button) 8%, var(--soft));
 }
 
 .model-menu-separator {
@@ -1092,8 +1118,8 @@ textarea::placeholder {
 }
 
 .panel-close:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--button);
+  color: var(--button);
 }
 
 .artifact-row,
@@ -1168,8 +1194,8 @@ textarea::placeholder {
 }
 
 .artifact-preview-close:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--button);
+  color: var(--button);
 }
 
 .terminal-row,
@@ -1400,15 +1426,15 @@ textarea::placeholder {
 }
 
 [data-theme-choice="simple"] .theme-swatch span:nth-child(1) {
-  background: #ffffff;
+  background: #fffdf8;
 }
 
 [data-theme-choice="simple"] .theme-swatch span:nth-child(2) {
-  background: #f2f3f2;
+  background: #78c8d2;
 }
 
 [data-theme-choice="simple"] .theme-swatch span:nth-child(3) {
-  background: #ff5d22;
+  background: #e07b63;
 }
 
 [data-theme-choice="cyberpunk"] .theme-swatch span:nth-child(1) {

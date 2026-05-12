@@ -1,8 +1,13 @@
 :root {
   color-scheme: light;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f7f7f4;
-  color: #191917;
+  font-family: "Avenir Next", "Hiragino Sans", "Yu Gothic", sans-serif;
+  background: #f7f3ea;
+  color: #234457;
+  --paper: #fffdf8;
+  --paper-line: #cbdde1;
+  --wood: #2f6f97;
+  --ink-soft: #6d8a96;
+  --accent: #e07b63;
 }
 
 * {
@@ -12,7 +17,11 @@
 body {
   margin: 0;
   min-height: 100svh;
-  background: #f7f7f4;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.62), transparent 26%),
+    radial-gradient(circle at 82% 14%, rgba(125, 205, 219, 0.18), transparent 18%),
+    radial-gradient(circle at bottom right, rgba(224, 123, 99, 0.08), transparent 18%),
+    linear-gradient(180deg, #edf5f6 0%, #f9f4e9 100%);
 }
 
 button,
@@ -38,25 +47,40 @@ textarea {
   justify-content: space-between;
   gap: 12px;
   padding: 4px 2px 8px;
-  border-bottom: 1px solid #deded8;
+  border-bottom: 1px solid var(--paper-line);
   min-width: 0;
   width: 100%;
   max-width: 100%;
 }
 
-.topbar > div:first-child {
+.brand-block {
   min-width: 0;
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  min-width: 0;
+}
+
+.brand-wordmark-image {
+  display: block;
+  width: min(420px, 70vw);
+  max-width: 100%;
+  height: auto;
 }
 
 h1 {
   margin: 0;
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1.2;
+  letter-spacing: 0.01em;
 }
 
 p {
   margin: 4px 0 0;
-  color: #77766e;
+  color: var(--ink-soft);
   font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -76,9 +100,10 @@ p {
 }
 
 .threads-panel {
-  border: 1px solid #d8d8d0;
-  border-radius: 14px;
-  background: #ffffff;
+  border: 1px solid var(--paper-line);
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: 0 14px 28px rgba(41, 93, 119, 0.08);
   overflow: hidden;
   min-width: 0;
   max-height: min(42svh, 360px);
@@ -115,7 +140,7 @@ p {
   border: 0;
   border-bottom: 1px solid #f0f0ed;
   border-radius: 0;
-  background: #ffffff;
+  background: var(--paper);
   text-align: left;
 }
 
@@ -131,17 +156,17 @@ p {
 }
 
 .thread-choice span {
-  color: #77766e;
+  color: var(--ink-soft);
   font-size: 12px;
 }
 
 button,
 select {
   min-height: 42px;
-  border: 1px solid #d8d8d0;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #191917;
+  border: 1px solid var(--paper-line);
+  border-radius: 12px;
+  background: rgba(255, 250, 241, 0.96);
+  color: #234457;
 }
 
 button {
@@ -179,7 +204,7 @@ select {
 }
 
 .entry .bubble a {
-  color: #1d5fcf;
+  color: #2f6f97;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -193,30 +218,31 @@ select {
 }
 
 .entry.user .bubble {
-  background: #2766d8;
+  background: #2f6f97;
   color: white;
   border-bottom-right-radius: 5px;
 }
 
 .entry.assistant .bubble {
-  background: #ffffff;
-  border: 1px solid #e2e2dc;
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
   border-bottom-left-radius: 5px;
+  box-shadow: 0 10px 20px rgba(41, 93, 119, 0.05);
 }
 
 .entry.status .bubble {
   max-width: 100%;
   background: transparent;
-  color: #77766e;
+  color: var(--ink-soft);
   border: 0;
   font-size: 13px;
   padding: 4px 2px;
 }
 
 .entry.error .bubble {
-  background: #fff2ef;
-  border: 1px solid #f0b8ad;
-  color: #a23324;
+  background: #fff3ef;
+  border: 1px solid #efbbb2;
+  color: #b34f43;
 }
 
 .thumbs {
@@ -236,15 +262,18 @@ select {
 }
 
 .state {
+  align-self: end;
   display: flex;
   align-items: center;
   gap: 9px;
+  height: 38px;
   min-height: 38px;
+  max-height: 38px;
   padding: 0 12px;
-  border: 1px solid #c8d8f0;
+  border: 1px solid var(--paper-line);
   border-radius: 999px;
-  color: #2766d8;
-  background: #edf4ff;
+  color: var(--ink-soft);
+  background: rgba(255, 253, 248, 0.94);
   font-size: 14px;
   min-width: 0;
   width: 100%;
@@ -260,24 +289,24 @@ select {
 
 .state[data-state="running"],
 .state[data-state="streaming"] {
-  color: #8a5a00;
-  background: #fff7df;
-  border-color: #efd492;
+  color: #2f6f97;
+  background: rgba(120, 200, 210, 0.12);
+  border-color: rgba(120, 200, 210, 0.42);
 }
 
 .state[data-state="error"],
 .state[data-state="disconnected"] {
-  color: #a23324;
-  background: #fff2ef;
-  border-color: #f0b8ad;
+  color: #b34f43;
+  background: #fff3ef;
+  border-color: #efbbb2;
 }
 
 .composer {
-  border: 1px solid #d8d8d0;
-  border-radius: 18px;
-  background: #ffffff;
+  border: 1px solid var(--paper-line);
+  border-radius: 24px;
+  background: rgba(255, 253, 248, 0.97);
   padding: 10px;
-  box-shadow: 0 12px 32px rgba(20, 20, 15, 0.09);
+  box-shadow: 0 12px 32px rgba(41, 93, 119, 0.1);
   overflow: hidden;
   min-width: 0;
   width: 100%;
@@ -306,7 +335,7 @@ select {
   min-height: 24px;
   padding: 0;
   border-radius: 50%;
-  background: #191917;
+  background: var(--button, #2f6f97);
   color: white;
 }
 
@@ -328,16 +357,16 @@ textarea {
 }
 
 #send {
-  border-color: #2766d8;
-  background: #2766d8;
-  color: white;
+  border-color: #2f6f97;
+  background: linear-gradient(180deg, #78c8d2 0%, #2f6f97 100%);
+  color: #fffdf8;
   font-weight: 700;
 }
 
 .approval {
-  border: 1px solid #efd492;
+  border: 1px solid rgba(120, 200, 210, 0.42);
   border-radius: 14px;
-  background: #fff7df;
+  background: rgba(120, 200, 210, 0.1);
   padding: 12px;
 }
 
@@ -378,6 +407,10 @@ textarea {
 
   h1 {
     font-size: 18px;
+  }
+
+  .brand-wordmark-image {
+    width: min(320px, 62vw);
   }
 
   p {

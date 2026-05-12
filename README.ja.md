@@ -84,11 +84,14 @@ CODEX_UPLOAD_MAX_MB=12 npm run phone
 ```bash
 npm run token:reset
 npm run launchagent:install -- --workdir "/path/to/project"
+npm run simulator:smoke
 ```
 
 `token:reset`は`.phone-token`を再生成します。古いスマホURLは使えなくなります。
 
 `launchagent:install`はmacOSのLaunchAgentを作り、ログイン時にOcdex Liteを起動し、落ちた時に再起動するようにします。
+
+`simulator:smoke`はXcode SimulatorのiPhone/iPadで`/lite.html`を開き、スクリーンショット保存とbridge接続状態を確認します。実機Wi-Fi、Tailscale、画面ロック復帰の代替にはなりませんが、公開前の軽い回帰確認に使えます。
 
 ## 構成
 
