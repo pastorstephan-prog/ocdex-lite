@@ -9,7 +9,7 @@ const WebSocket = require("ws");
 const { bridgeKeyForRequest, shouldDisposeIdleBridge, shouldPromoteBridgeKey } = require("./bridge-state");
 const { isHistorySyncEnabled, runHistorySync } = require("./history-sync");
 const { bridgeUrls, notifyBridgeUrls } = require("./phone-notify");
-const { listSessionThreads } = require("./session-threads");
+const { listSessionThreads, parseSessionThreadFile } = require("./session-threads");
 const { lightweightHandoffTitle, threadLabelFromHistory } = require("./thread-title");
 
 const root = path.resolve(__dirname, "..");
@@ -514,7 +514,12 @@ function handoffForThread(threadId, reason) {
   }
   const recent = messages.filter((message) => message.text).slice(-8);
   if (!recent.length) return { text: "", title: "" };
-  const title = lightweightHandoffTitle({ messages: recent, threadId, fallback: projectTitleFromWorkdir() });
+  const sourceThread = parseSessionThreadFile(filePath, {
+    fallbackCwd: workdir,
+    fallbackName: projectTitleFromWorkdir(),
+  });
+  const sourceTitle = sourceThread?.name || "";
+  const title = lightweightHandoffTitle({ messages: recent, sourceTitle, fallback: projectTitleFromWorkdir() });
   const body = recent.map((message) => `- ${message.role}: ${message.text}`).join("\n");
   const text = [
     title,
@@ -636,6 +641,7 @@ class SharedBridge {
     this.turnQueue = [];
     this.pendingHandoffText = "";
     this.pendingHandoffTitle = "";
+    this.pendingHandoffOldThreadId = "";
     this.idleDisposeTimer = null;
     this.upstream = null;
     this.startUpstream();
@@ -745,6 +751,7 @@ class SharedBridge {
     const handoff = handoffForThread(oldThreadId, reason);
     this.pendingHandoffText = handoff.text;
     this.pendingHandoffTitle = handoff.title;
+    this.pendingHandoffOldThreadId = oldThreadId || "";
     this.requestedThreadId = null;
     this.threadId = null;
     this.ready = false;
@@ -862,6 +869,7 @@ class SharedBridge {
             const handoff = handoffForThread(this.requestedThreadId, reason);
             this.pendingHandoffText = handoff.text;
             this.pendingHandoffTitle = handoff.title;
+            this.pendingHandoffOldThreadId = this.requestedThreadId || "";
             if (this.pendingHandoffText) this.emit("status", { text: "旧チャット末尾から引き継ぎメモを作成しました。" });
             this.requestedThreadId = null;
             this.history = [];
@@ -875,7 +883,7 @@ class SharedBridge {
         if (this.pendingHandoffTitle) {
           threadTitleOverrides.set(this.threadId, {
             name: this.pendingHandoffTitle,
-            preview: "旧チャットから自動引き継ぎした軽量チャット",
+            preview: this.pendingHandoffOldThreadId ? `旧thread: ${this.pendingHandoffOldThreadId}` : "旧チャットから自動引き継ぎした軽量チャット",
           });
         }
         this.promoteBridgeKey();
@@ -890,6 +898,7 @@ class SharedBridge {
           const handoff = this.pendingHandoffText;
           this.pendingHandoffText = "";
           this.pendingHandoffTitle = "";
+          this.pendingHandoffOldThreadId = "";
           this.emit("status", { text: "新しい軽量チャットへ引き継ぎを送信します。" });
           this.startPrompt(handoff, [], { approvalPolicy: "on-request", sandboxMode: "workspace-write" });
         }

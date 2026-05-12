@@ -8,6 +8,7 @@ function stripTitleNoise(value) {
     .replace(/^reply exactly:\s*/i, "")
     .replace(/^旧チャットが重すぎて.*?自動引き継ぎします。?/i, "")
     .replace(/^軽量引き継ぎ[:：]\s*/i, "")
+    .replace(/^軽量版[:：]\s*/i, "")
     .replace(/https?:\/\/\S+/g, "")
     .replace(/`{1,3}[^`]*`{1,3}/g, "")
     .replace(/\[[^\]]+\]\([^)]+\)/g, "")
@@ -46,15 +47,14 @@ function titleFromRecentMessages(messages = [], fallback = "このプロジェ�
   return candidates[0] || titleExcerpt(fallback, 32) || "軽量チャット";
 }
 
-function lightweightHandoffTitle({ messages = [], threadId = "", fallback = "このプロジェクト" } = {}) {
-  const topic = titleFromRecentMessages(messages, fallback);
-  const shortId = shortThreadId(threadId);
-  return shortId ? `軽量引き継ぎ: ${topic} (${shortId})` : `軽量引き継ぎ: ${topic}`;
+function lightweightHandoffTitle({ messages = [], sourceTitle = "", fallback = "このプロジェクト" } = {}) {
+  const topic = titleExcerpt(sourceTitle, 42) || titleFromRecentMessages(messages, fallback);
+  return `軽量版: ${topic}`;
 }
 
 function threadLabelFromHistory(history = [], fallback = "共有チャット") {
   const firstUser = history.find((entry) => entry.type === "user" && entry.text)?.text || "";
-  if (/^軽量引き継ぎ[:：]/.test(firstUser)) {
+  if (/^軽量(引き継ぎ|版)[:：]/.test(firstUser)) {
     const firstLine = compactWhitespace(String(firstUser).split("\n").find(Boolean) || "");
     return firstLine.length > 54 ? `${firstLine.slice(0, 54)}...` : firstLine || fallback;
   }
@@ -67,6 +67,7 @@ function threadLabelFromHistory(history = [], fallback = "共有チャット") {
 
 module.exports = {
   lightweightHandoffTitle,
+  shortThreadId,
   threadLabelFromHistory,
   titleExcerpt,
 };
