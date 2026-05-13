@@ -8,6 +8,8 @@ Ocdex Lite is a local-first PWA for people who want Codex to keep working on a d
 
 > Status: early public MVP. Not affiliated with OpenAI.
 
+**日本語で読みたい方へ:** [README.ja.md](README.ja.md) に日本語版があります。500円の日本語セットアップガイドへの案内もそちらにまとめています。
+
 ## New Here?
 
 If you are comfortable with Git, Node.js, and the Codex CLI, the free README below is enough to try Ocdex Lite.
