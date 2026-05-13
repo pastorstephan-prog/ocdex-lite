@@ -12,6 +12,9 @@ hero:
       text: Start Ocdex Lite
       link: /guide/phone-bridge
     - theme: alt
+      text: Japanese Setup Guide
+      link: https://note.com/ocdex_lite/n/nd69e05ae6f3c
+    - theme: alt
       text: Security Model
       link: /guide/security
 features:
@@ -32,11 +35,16 @@ features:
 ## Quick Start
 
 ```bash
+git clone https://github.com/pastorstephan-prog/ocdex-lite.git
+cd ocdex-lite
+git checkout v1.0.7
 npm ci
 npm run phone
 ```
 
 Open the printed URL from a phone or another browser on the same Wi-Fi/LAN. The phone can drive the desktop Codex session, and another browser can resume the same bridge-managed thread.
+
+You need a Mac with Git, Node.js/npm, and Codex CLI already installed and logged in. Ocdex Lite is a local bridge, not a hosted relay.
 
 Use the Lite PWA route for mobile:
 

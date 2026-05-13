@@ -12,6 +12,9 @@ hero:
       text: Ocdex Liteを始める
       link: /ja/guide/phone-bridge
     - theme: alt
+      text: 500円ガイド
+      link: https://note.com/ocdex_lite/n/nd69e05ae6f3c
+    - theme: alt
       text: 安全設計
       link: /ja/guide/security
 features:
@@ -32,11 +35,16 @@ features:
 ## Quick Start
 
 ```bash
+git clone https://github.com/pastorstephan-prog/ocdex-lite.git
+cd ocdex-lite
+git checkout v1.0.7
 npm ci
 npm run phone
 ```
 
 Mac に表示された URL を、同じ Wi-Fi/LAN 上のスマホや別ブラウザで開きます。スマホからデスクトップの Codex セッションを操作でき、別ブラウザでも同じ bridge-managed thread を resume できます。
+
+Macには、Git、Node.js/npm、ログイン済みのCodex CLIが必要です。Ocdex Liteはローカルbridgeであり、公開クラウド中継ではありません。
 
 モバイルではLite PWAのURLを使います。
 

@@ -7,9 +7,14 @@ Phone bridge は Codex app-server をローカルで起動し、`/readyz` を待
 ## 起動
 
 ```bash
+git clone https://github.com/pastorstephan-prog/ocdex-lite.git
+cd ocdex-lite
+git checkout v1.0.7
 npm ci
 npm run phone
 ```
+
+この前に、実際に作業するMacへCodex CLIをインストールし、ログインしておいてください。iPhone/iPadは軽いブラウザ画面を開くだけで、Codex本体を実行するわけではありません。
 
 次のような URL が表示されます。
 

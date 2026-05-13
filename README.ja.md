@@ -18,6 +18,19 @@ Git、Node.js、Codex CLIに慣れている方は、このREADMEだけで試せ�
 
 自力セットアップ、iPhone/iPadからの開き方、Macログイン時の自動起動、Tailscaleを使う場合の考え方、よくある確認ポイントをまとめています。個別サポート、導入代行、環境別の動作保証は含みません。
 
+## 始める前に
+
+Ocdex Liteは、クラウドサービスでも、ワンタップで入るiPhoneアプリでもありません。実際にCodexを動かすのはMacで、iPhone/iPadは軽い操作画面になります。
+
+必要なもの:
+
+- Codexを動かしておけるMac
+- そのMacにインストール済みでログイン済みのCodex CLI
+- そのMacに入っているGitとNode.js/npm
+- 同じWi-Fi/LAN上のiPhone/iPad、またはTailscale/VPNなどの信頼できるprivate経路
+
+Ocdex Liteは、OpenAIアカウント、Codex CLI本体の導入、公開クラウド中継を提供しません。安全のため、public internetへ直接公開しないでください。
+
 ## なぜ作るか
 
 CodexはMac上では強い一方、iPhone/iPadからの操作はまだ重くなりがちです。デスクトップ風UIをそのまま持ち込むと、モバイルSafariで切断、横はみ出し、画像payload過大が起きやすくなります。Ocdex Liteは、最小限の実用ループに絞ります。

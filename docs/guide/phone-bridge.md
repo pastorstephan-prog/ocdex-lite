@@ -7,9 +7,14 @@ Its main job is to make the phone a remote control for the Codex session on your
 ## Start
 
 ```bash
+git clone https://github.com/pastorstephan-prog/ocdex-lite.git
+cd ocdex-lite
+git checkout v1.0.7
 npm ci
 npm run phone
 ```
+
+Before this step, install and log in to Codex CLI on the Mac that will do the work. The phone only opens a lightweight browser UI; it does not run Codex by itself.
 
 The command prints one URL per LAN IPv4 address:
 

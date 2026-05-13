@@ -20,6 +20,19 @@ If you want a slower, beginner-friendly Japanese walkthrough, use the paid setup
 
 Price: 500 JPY. It covers self-setup, iPhone/iPad access, launch-at-login setup, Tailscale notes, and common troubleshooting. Individual support is not included.
 
+## Before You Start
+
+Ocdex Lite is not a hosted service and not a one-tap iPhone app. Your Mac does the real work, and the phone is a lightweight control surface.
+
+You need:
+
+- a Mac that can keep running while you use Codex from another device
+- Codex CLI installed and logged in on that Mac
+- Git and Node.js/npm installed on that Mac
+- an iPhone/iPad on the same Wi-Fi/LAN, or a trusted private route such as Tailscale/VPN
+
+Ocdex Lite does not provide OpenAI account access, Codex CLI installation support, or a public cloud relay. For safety, do not expose it directly to the public internet.
+
 ## Why This Exists
 
 Codex is powerful on a Mac, but mobile remote control is still awkward. Heavy desktop-style UIs can disconnect, overflow, or fail on image payloads in mobile Safari. Ocdex Lite focuses on the smallest useful loop:
