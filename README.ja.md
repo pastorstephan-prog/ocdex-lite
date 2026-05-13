@@ -8,6 +8,16 @@ Ocdex Liteは、CodexをMac上で動かしたまま、スマホやタブレッ�
 
 > 状態: 初期公開MVP。OpenAI公式/提携プロダクトではありません。
 
+## はじめての方へ
+
+Git、Node.js、Codex CLIに慣れている方は、このREADMEだけで試せます。
+
+「ターミナルは苦手だけど、iPhone/iPadからCodexを動かしてみたい」という方向けに、500円の日本語セットアップガイドを用意しています。
+
+**[iPhone/iPadからMacのCodex CLIを軽く操作する: Ocdex Liteやさしい自力セットアップガイド](https://note.com/ocdex_lite/n/nd69e05ae6f3c)**
+
+自力セットアップ、iPhone/iPadからの開き方、Macログイン時の自動起動、Tailscaleを使う場合の考え方、よくある確認ポイントをまとめています。個別サポート、導入代行、環境別の動作保証は含みません。
+
 ## なぜ作るか
 
 CodexはMac上では強い一方、iPhone/iPadからの操作はまだ重くなりがちです。デスクトップ風UIをそのまま持ち込むと、モバイルSafariで切断、横はみ出し、画像payload過大が起きやすくなります。Ocdex Liteは、最小限の実用ループに絞ります。
@@ -43,6 +53,7 @@ CodexはMac上では強い一方、iPhone/iPadからの操作はまだ重くな�
 ```bash
 git clone https://github.com/pastorstephan-prog/ocdex-lite.git
 cd ocdex-lite
+git checkout v1.0.7
 npm ci
 npm run phone
 ```
@@ -116,6 +127,17 @@ Codex app-serverはlocalhostに閉じるのが前提です。LANやpublic intern
 - デモや共有ネットワーク利用後は`.phone-token`をローテーションする
 
 詳細は[SECURITY.md](SECURITY.md)。
+
+## 日本語セットアップガイド
+
+このリポジトリは、アプリ本体を無料公開する方針です。
+
+有料noteは、GitHubのREADMEだけでは不安な方向けに、手順をやさしく並べ直した自力セットアップ用ガイドです。
+
+- 有料ガイド: [Ocdex Liteやさしい自力セットアップガイド](https://note.com/ocdex_lite/n/nd69e05ae6f3c)
+- 価格: 500円
+- 向いている人: MacとCodex CLIは使いたいが、GitHubのREADMEだけでは不安な人
+- 含まないもの: 個別サポート、導入代行、環境別トラブル対応の保証
 
 ## 商用Goal
 

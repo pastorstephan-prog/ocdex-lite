@@ -8,6 +8,16 @@ Ocdex Lite is a local-first PWA for people who want Codex to keep working on a d
 
 > Status: early public MVP. Not affiliated with OpenAI.
 
+## New Here?
+
+If you are comfortable with Git, Node.js, and the Codex CLI, the free README below is enough to try Ocdex Lite.
+
+If you want a slower, beginner-friendly Japanese walkthrough, use the paid setup guide:
+
+**[iPhone/iPadからMacのCodex CLIを軽く操作する: Ocdex Liteやさしい自力セットアップガイド](https://note.com/ocdex_lite/n/nd69e05ae6f3c)**
+
+Price: 500 JPY. It covers self-setup, iPhone/iPad access, launch-at-login setup, Tailscale notes, and common troubleshooting. Individual support is not included.
+
 ## Why This Exists
 
 Codex is powerful on a Mac, but mobile remote control is still awkward. Heavy desktop-style UIs can disconnect, overflow, or fail on image payloads in mobile Safari. Ocdex Lite focuses on the smallest useful loop:
@@ -43,6 +53,7 @@ Codex is powerful on a Mac, but mobile remote control is still awkward. Heavy de
 ```bash
 git clone https://github.com/pastorstephan-prog/ocdex-lite.git
 cd ocdex-lite
+git checkout v1.0.7
 npm ci
 npm run phone
 ```
@@ -116,6 +127,15 @@ The Codex app-server should stay bound to localhost. Do not expose it directly t
 - Rotate `.phone-token` after demos or shared-network testing.
 
 See [SECURITY.md](SECURITY.md).
+
+## Need the Japanese Setup Guide?
+
+This repository intentionally keeps the core app free and public. The paid note is for people who want the setup path explained gently in Japanese, with screenshots and beginner-facing checks.
+
+- Paid guide: [Ocdex Liteやさしい自力セットアップガイド](https://note.com/ocdex_lite/n/nd69e05ae6f3c)
+- Price: 500 JPY
+- Best for: people who already have a Mac and Codex CLI, but are not comfortable reading only a GitHub README
+- Not included: individual support, setup代行, environment-specific troubleshooting guarantees
 
 ## Commercial Goal
 
