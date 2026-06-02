@@ -6,9 +6,21 @@ Use your iPhone or iPad as a lightweight remote for Codex running on your Mac.
 
 Ocdex Lite is a local-first PWA for people who want Codex to keep working on a desktop machine, while they steer it from a phone or tablet. It keeps the Codex app-server on `127.0.0.1`, exposes a small token-protected bridge on your LAN, and serves a mobile-first chat UI at `/lite.html`.
 
-> Status: early public MVP. Not affiliated with OpenAI.
+> Status: active public MVP. Not affiliated with OpenAI.
 
 **日本語で読みたい方へ:** [README.ja.md](README.ja.md) に日本語版があります。500円の日本語セットアップガイドへの案内もそちらにまとめています。
+
+## Maintainer Status
+
+Ocdex Lite is maintained as a small open-source utility for real Codex workflows, especially for developers who keep Codex running on a Mac and need a lightweight mobile control surface. The project currently focuses on safety, setup clarity, mobile reliability, and release checks rather than broad hosted-service features.
+
+Maintainer work includes:
+
+- reviewing Codex and mobile-Safari workflow regressions
+- keeping the local-first security boundary clear
+- improving setup documentation for English and Japanese users
+- testing release behavior on Mac, iPhone, and iPad paths
+- triaging issues around token handling, image uploads, reconnect behavior, and launch-at-login setup
 
 ## New Here?
 
