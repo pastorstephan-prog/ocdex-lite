@@ -23,6 +23,7 @@ export default defineConfig({
           { text: "Start", link: "/guide/phone-bridge" },
           { text: "Goal", link: "/goal" },
           { text: "Safety", link: "/guide/security" },
+          { text: "Sponsor", link: "https://github.com/sponsors/pastorstephan-prog" },
           { text: "GitHub", link: "https://github.com/pastorstephan-prog/ocdex-lite" },
         ],
         sidebar: [
@@ -51,6 +52,7 @@ export default defineConfig({
           { text: "始める", link: "/ja/guide/phone-bridge" },
           { text: "Goal", link: "/ja/goal" },
           { text: "安全設計", link: "/ja/guide/security" },
+          { text: "支援", link: "https://github.com/sponsors/pastorstephan-prog" },
           { text: "GitHub", link: "https://github.com/pastorstephan-prog/ocdex-lite" },
         ],
         sidebar: [
