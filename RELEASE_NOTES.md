@@ -1,4 +1,15 @@
-# Ocdex Lite v1.0.7
+# Ocdex Lite v1.1.0
+
+## v1.1.0
+
+Sponsor-ready maintenance release.
+
+- Add the GitHub Sponsors funding link and clear support boundaries
+- Align the English and Japanese commercial plans with voluntary OSS sponsorship
+- Add monthly grouped dependency update checks
+- Run CI on the `develop` integration branch as well as pull requests and `main`
+- Refresh Codex, Playwright, and WebSocket development dependencies
+- Keep individual setup help, consulting, feature priority, and response-time guarantees outside sponsorship
 
 ## v1.0.7
 

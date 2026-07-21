@@ -17,6 +17,9 @@ hero:
     - theme: alt
       text: 安全設計
       link: /ja/guide/security
+    - theme: alt
+      text: 継続保守を支援
+      link: https://github.com/sponsors/pastorstephan-prog
 features:
   - title: モバイル優先
     details: /lite.html のPWAは、iPhone/iPadで使うために画面を絞っています。
@@ -37,7 +40,7 @@ features:
 ```bash
 git clone https://github.com/pastorstephan-prog/ocdex-lite.git
 cd ocdex-lite
-git checkout v1.0.7
+git checkout v1.1.0
 npm ci
 npm run phone
 ```
@@ -58,3 +61,7 @@ protocol だけを確認する場合は、別 terminal で app-server と probe 
 npm run server:ws
 npm run probe:ws
 ```
+
+## 継続保守を支援する
+
+Ocdex Liteは無料のオープンソースです。[GitHub Sponsors](https://github.com/sponsors/pastorstephan-prog)から互換性確認、ドキュメント、リリース保守を支援できます。スポンサーに個別セットアップや応答時間保証は含まれません。
