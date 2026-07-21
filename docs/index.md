@@ -12,8 +12,8 @@ hero:
       text: Start Ocdex Lite
       link: /guide/phone-bridge
     - theme: alt
-      text: Japanese Setup Guide
-      link: https://note.com/ocdex_lite/n/nd69e05ae6f3c
+      text: Official Codex Remote
+      link: https://openai.com/index/work-with-codex-from-anywhere/
     - theme: alt
       text: Security Model
       link: /guide/security
@@ -35,12 +35,14 @@ features:
   <img src="./assets/ocdex-lite-iphone-history.png" alt="Ocdex Lite iPhone history" width="320">
 </p>
 
+> **Official Remote first:** OpenAI now provides Codex Remote in the ChatGPT mobile app. Use it for the supported, secure mobile experience. Ocdex Lite is a maintenance-only local-first experiment for users who deliberately want a self-hosted LAN/VPN interface.
+
 ## Quick Start
 
 ```bash
 git clone https://github.com/pastorstephan-prog/ocdex-lite.git
 cd ocdex-lite
-git checkout v1.1.0
+git checkout v1.1.1
 npm ci
 npm run phone
 ```

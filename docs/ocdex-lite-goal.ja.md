@@ -1,5 +1,7 @@
 # Ocdex Lite Goal
 
+> **2026-07-21更新:** OpenAI公式Codex Remoteの登場により、この商用Goalは終了しました。現在は保守限定の実験OSSです。以下は当初計画の記録として残します。
+
 ## Goal
 
 Ocdex Liteを、まずはPWA版として公開する。

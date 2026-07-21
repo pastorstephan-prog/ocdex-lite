@@ -1,20 +1,13 @@
-# Commercial Goal
+# Project Position
 
-Ocdex Lite ships first as a public PWA repository.
+The original commercial plan is retired. OpenAI's official Codex Remote is the appropriate first recommendation for most mobile users, so Ocdex Lite is no longer marketed as a paid remote-control product.
 
-The initial business model is:
+Current scope:
 
-- open source PWA
-- 500 yen paid self-setup guide
-- voluntary GitHub Sponsors support for ongoing maintenance
-- no individual support, no setup agency work, no environment-specific guarantee
-
-Not first:
-
-- App Store app
-- GitHub Marketplace app
-- hosted relay
-- team dashboard
+- maintenance-only open source experiment
+- self-hosted LAN/VPN UI and app-server reference implementation
+- best-effort security and compatibility fixes
+- no paid guide, individual support, setup agency work, or environment-specific guarantee
 
 See the Japanese working notes:
 
