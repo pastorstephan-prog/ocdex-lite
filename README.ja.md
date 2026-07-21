@@ -6,17 +6,13 @@ iPhone/iPadを、Mac上で動くCodexの軽量リモコンにするPWAです。
 
 Ocdex Liteは、CodexをMac上で動かしたまま、スマホやタブレットから軽く指示したい人のためのローカル優先UIです。Codex app-serverは`127.0.0.1`に閉じ、LANに出すのはtoken付きの小さなbridgeだけです。モバイル向け画面は`/lite.html`で開きます。
 
-> 状態: 初期公開MVP。OpenAI公式/提携プロダクトではありません。
+> 状態: 保守限定の実験的プロジェクト。OpenAI公式/提携プロダクトではありません。
 
-## はじめての方へ
+## まず公式Remoteを使ってください
 
-Git、Node.js、Codex CLIに慣れている方は、このREADMEだけで試せます。
+現在は、ChatGPTモバイルアプリにOpenAI公式のCodex Remoteがあります。スレッド、承認、diff、terminal出力、スクリーンショットを扱え、ローカルbridgeを公開せず公式の安全なrelayで接続できます。多くの人には、こちらが安全で簡単な第一選択です: [Work with Codex from anywhere](https://openai.com/index/work-with-codex-from-anywhere/)。
 
-「ターミナルは苦手だけど、iPhone/iPadからCodexを動かしてみたい」という方向けに、500円の日本語セットアップガイドを用意しています。
-
-**[iPhone/iPadからMacのCodex CLIを軽く操作する: Ocdex Liteやさしい自力セットアップガイド](https://note.com/ocdex_lite/n/nd69e05ae6f3c)**
-
-自力セットアップ、iPhone/iPadからの開き方、Macログイン時の自動起動、Tailscaleを使う場合の考え方、よくある確認ポイントをまとめています。個別サポート、導入代行、環境別の動作保証は含みません。
+Ocdex Liteは、自分で管理するLAN/VPN内のUI、内容を確認・改造できる小さな実装、Codex app-serverの参考実装が明確に必要で、設定と安全管理を自身で担える場合だけ使ってください。
 
 ## プロジェクトを支援する
 
@@ -37,9 +33,9 @@ Ocdex Liteは、クラウドサービスでも、ワンタップで入るiPhone�
 
 Ocdex Liteは、OpenAIアカウント、Codex CLI本体の導入、公開クラウド中継を提供しません。安全のため、public internetへ直接公開しないでください。
 
-## なぜ作るか
+## なぜ今も残すか
 
-CodexはMac上では強い一方、iPhone/iPadからの操作はまだ重くなりがちです。デスクトップ風UIをそのまま持ち込むと、モバイルSafariで切断、横はみ出し、画像payload過大が起きやすくなります。Ocdex Liteは、最小限の実用ループに絞ります。
+Ocdex Liteは公式Remoteより前に作られました。現在はローカル優先の実験、自前UIの検証、app-serverの参考実装として、次の小さな操作ループを残しています。
 
 - iPhone/iPadからCodexへ頼む
 - 過去チャットを続ける
@@ -72,7 +68,7 @@ CodexはMac上では強い一方、iPhone/iPadからの操作はまだ重くな�
 ```bash
 git clone https://github.com/pastorstephan-prog/ocdex-lite.git
 cd ocdex-lite
-git checkout v1.1.0
+git checkout v1.1.1
 npm ci
 npm run phone
 ```
@@ -147,28 +143,9 @@ Codex app-serverはlocalhostに閉じるのが前提です。LANやpublic intern
 
 詳細は[SECURITY.md](SECURITY.md)。
 
-## 日本語セットアップガイド
+## 現在の位置づけ
 
-このリポジトリは、アプリ本体を無料公開する方針です。
-
-有料noteは、GitHubのREADMEだけでは不安な方向けに、手順をやさしく並べ直した自力セットアップ用ガイドです。
-
-- 有料ガイド: [Ocdex Liteやさしい自力セットアップガイド](https://note.com/ocdex_lite/n/nd69e05ae6f3c)
-- 価格: 500円
-- 向いている人: MacとCodex CLIは使いたいが、GitHubのREADMEだけでは不安な人
-- 含まないもの: 個別サポート、導入代行、環境別トラブル対応の保証
-
-## 商用Goal
-
-最初の商用Goalは、App StoreでもGitHub Marketplaceでもありません。
-
-- PWA版をGitHub公開
-- [note有料記事](https://note.com/ocdex_lite/n/nd69e05ae6f3c)で、自力セットアップ用ガイドを販売
-- 個別サポート、導入代行、環境別トラブル対応は初期商品に含めない
-- 安定したmobile Codex remoteが欲しい人向けに、500円の買い切り手順書を用意する
-- OSSの継続保守は[GitHub Sponsors](https://github.com/sponsors/pastorstephan-prog)による任意支援も受け付ける
-
-詳細は[docs/ocdex-lite-goal.ja.md](docs/ocdex-lite-goal.ja.md)と[docs/ocdex-lite-commercial-plan.ja.md](docs/ocdex-lite-commercial-plan.ja.md)。
+Ocdex Liteを有料のリモート操作商品として販売しません。多くの利用者には公式Remoteを先に案内すべきであるため、従来の500円ガイド販売計画は終了しました。リポジトリは実験とbest-effort保守のため無料公開を続けます。
 
 ## Attribution
 

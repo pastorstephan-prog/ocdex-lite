@@ -1,6 +1,8 @@
 # Ocdex Lite note有料記事 予告
 
-Ocdex Liteの有料note記事は、500円の買い切り手順書として販売する。
+> **販売停止（2026-07-21）:** 公式Codex Remoteを第一選択として案内するため、この販売予告は無効です。履歴資料としてのみ残します。
+
+この販売案は実行しない。Ocdex Liteは無料の保守限定実験として残し、利用者には公式Codex Remoteを先に案内する。
 
 公開URL:
 
@@ -12,7 +14,7 @@ iPhone/iPadからMacのCodexを軽く操作する: Ocdex Liteやさしい自力�
 
 ## 価格
 
-500円
+販売停止
 
 ## 含めるもの
 
@@ -31,4 +33,4 @@ iPhone/iPadからMacのCodexを軽く操作する: Ocdex Liteやさしい自力�
 
 ## 公開方針
 
-GitHubにはOSS本体と概要を公開する。有料note本文そのものは公開リポジトリに置かない。
+GitHubにはOSS本体と、公式Remoteを第一選択とする現在の位置づけを公開する。
