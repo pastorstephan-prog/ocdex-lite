@@ -12,8 +12,8 @@ hero:
       text: Ocdex Liteを始める
       link: /ja/guide/phone-bridge
     - theme: alt
-      text: 500円ガイド
-      link: https://note.com/ocdex_lite/n/nd69e05ae6f3c
+      text: 公式Codex Remote
+      link: https://openai.com/index/work-with-codex-from-anywhere/
     - theme: alt
       text: 安全設計
       link: /ja/guide/security
@@ -35,12 +35,14 @@ features:
   <img src="../assets/ocdex-lite-iphone-history.png" alt="Ocdex Lite iPhone history" width="320">
 </p>
 
+> **まず公式Remoteを使ってください:** ChatGPTモバイルアプリの公式Codex Remoteが、現在の安全でサポートされた第一選択です。Ocdex Liteは、自前のLAN/VPN UIを明確に必要とする人向けの保守限定実験です。
+
 ## Quick Start
 
 ```bash
 git clone https://github.com/pastorstephan-prog/ocdex-lite.git
 cd ocdex-lite
-git checkout v1.1.0
+git checkout v1.1.1
 npm ci
 npm run phone
 ```

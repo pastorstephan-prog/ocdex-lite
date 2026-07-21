@@ -17,6 +17,6 @@ Do not open a public issue for a vulnerability. Follow [SECURITY.md](SECURITY.md
 
 ## Sponsorship
 
-GitHub Sponsors supports maintenance, compatibility checks, documentation, and release work. Sponsorship is voluntary and does not purchase support, consulting, feature priority, or a service-level agreement.
+Ocdex Lite is a maintenance-only experiment. GitHub Sponsors may support best-effort maintenance, compatibility checks, and documentation, but the project is not an active commercial product. Sponsorship is voluntary and does not purchase support, consulting, feature priority, or a service-level agreement.
 
 [Sponsor ongoing maintenance](https://github.com/sponsors/pastorstephan-prog)

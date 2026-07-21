@@ -1,4 +1,13 @@
-# Ocdex Lite v1.1.0
+# Ocdex Lite v1.1.1
+
+## v1.1.1
+
+Project-positioning correction after the official Codex mobile Remote became available.
+
+- Recommend OpenAI's official Codex Remote first for most mobile users
+- Reclassify Ocdex Lite as a maintenance-only local-first experiment
+- Retire the paid setup-guide and active commercial-product positioning
+- Preserve the self-hosted LAN/VPN UI as an app-server reference implementation
 
 ## v1.1.0
 
