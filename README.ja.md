@@ -18,6 +18,12 @@ Git、Node.js、Codex CLIに慣れている方は、このREADMEだけで試せ�
 
 自力セットアップ、iPhone/iPadからの開き方、Macログイン時の自動起動、Tailscaleを使う場合の考え方、よくある確認ポイントをまとめています。個別サポート、導入代行、環境別の動作保証は含みません。
 
+## プロジェクトを支援する
+
+Ocdex Liteは無料のオープンソースです。役に立った場合は、[GitHub Sponsors](https://github.com/sponsors/pastorstephan-prog)から互換性確認、ドキュメント整備、リリース保守を支援できます。
+
+スポンサーは任意です。個別セットアップ、コンサルティング、機能の優先実装、応答時間の保証は含みません。問い合わせ前に[SUPPORT.md](SUPPORT.md)も確認してください。
+
 ## 始める前に
 
 Ocdex Liteは、クラウドサービスでも、ワンタップで入るiPhoneアプリでもありません。実際にCodexを動かすのはMacで、iPhone/iPadは軽い操作画面になります。
@@ -66,7 +72,7 @@ CodexはMac上では強い一方、iPhone/iPadからの操作はまだ重くな�
 ```bash
 git clone https://github.com/pastorstephan-prog/ocdex-lite.git
 cd ocdex-lite
-git checkout v1.0.7
+git checkout v1.1.0
 npm ci
 npm run phone
 ```
@@ -160,6 +166,7 @@ Codex app-serverはlocalhostに閉じるのが前提です。LANやpublic intern
 - [note有料記事](https://note.com/ocdex_lite/n/nd69e05ae6f3c)で、自力セットアップ用ガイドを販売
 - 個別サポート、導入代行、環境別トラブル対応は初期商品に含めない
 - 安定したmobile Codex remoteが欲しい人向けに、500円の買い切り手順書を用意する
+- OSSの継続保守は[GitHub Sponsors](https://github.com/sponsors/pastorstephan-prog)による任意支援も受け付ける
 
 詳細は[docs/ocdex-lite-goal.ja.md](docs/ocdex-lite-goal.ja.md)と[docs/ocdex-lite-commercial-plan.ja.md](docs/ocdex-lite-commercial-plan.ja.md)。
 

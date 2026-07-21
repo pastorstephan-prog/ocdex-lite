@@ -18,6 +18,8 @@ npm run phone
 
 Open the printed URL from a device on the same LAN. Keep the Codex app-server on `127.0.0.1`; only the token-protected bridge should listen on the LAN.
 
+For usage questions and bug reports, follow [SUPPORT.md](SUPPORT.md). Security issues must use the private reporting path in [SECURITY.md](SECURITY.md).
+
 ## Pull Requests
 
 - Keep changes public-safe.

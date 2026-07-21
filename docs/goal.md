@@ -6,6 +6,7 @@ The initial business model is:
 
 - open source PWA
 - 500 yen paid self-setup guide
+- voluntary GitHub Sponsors support for ongoing maintenance
 - no individual support, no setup agency work, no environment-specific guarantee
 
 Not first:

@@ -32,6 +32,12 @@ If you want a slower, beginner-friendly Japanese walkthrough, use the paid setup
 
 Price: 500 JPY. It covers self-setup, iPhone/iPad access, launch-at-login setup, Tailscale notes, and common troubleshooting. Individual support is not included.
 
+## Support the Project
+
+Ocdex Lite is free and open source. If it saves you time, you can support compatibility testing, documentation, and release maintenance through [GitHub Sponsors](https://github.com/sponsors/pastorstephan-prog).
+
+Sponsorship is voluntary. It does not include individual setup help, consulting, feature priority, or guaranteed response times. See [SUPPORT.md](SUPPORT.md) before opening a support request.
+
 ## Before You Start
 
 Ocdex Lite is not a hosted service and not a one-tap iPhone app. Your Mac does the real work, and the phone is a lightweight control surface.
@@ -80,7 +86,7 @@ Codex is powerful on a Mac, but mobile remote control is still awkward. Heavy de
 ```bash
 git clone https://github.com/pastorstephan-prog/ocdex-lite.git
 cd ocdex-lite
-git checkout v1.0.7
+git checkout v1.1.0
 npm ci
 npm run phone
 ```
@@ -171,6 +177,7 @@ The first commercial goal is not an App Store app and not a GitHub Marketplace a
 - public PWA repository
 - [Paid self-setup guide](https://note.com/ocdex_lite/n/nd69e05ae6f3c), with no individual support promise
 - a 500 JPY low-friction paid guide for people who want a stable mobile Codex remote
+- voluntary [GitHub Sponsors](https://github.com/sponsors/pastorstephan-prog) support for ongoing OSS maintenance
 
 See [docs/ocdex-lite-goal.ja.md](docs/ocdex-lite-goal.ja.md) and [docs/ocdex-lite-commercial-plan.ja.md](docs/ocdex-lite-commercial-plan.ja.md).
 

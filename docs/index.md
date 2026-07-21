@@ -17,6 +17,9 @@ hero:
     - theme: alt
       text: Security Model
       link: /guide/security
+    - theme: alt
+      text: Sponsor Maintenance
+      link: https://github.com/sponsors/pastorstephan-prog
 features:
   - title: Mobile-first
     details: The /lite.html PWA keeps the interface small enough for iPhone and iPad.
@@ -37,7 +40,7 @@ features:
 ```bash
 git clone https://github.com/pastorstephan-prog/ocdex-lite.git
 cd ocdex-lite
-git checkout v1.0.7
+git checkout v1.1.0
 npm ci
 npm run phone
 ```
@@ -66,3 +69,7 @@ phone browser -> http://Mac-LAN-IP:45214 -> Node bridge -> ws://127.0.0.1:45213 
 ```
 
 The app-server remains local. The bridge requires a token on page, API, and WebSocket requests.
+
+## Support ongoing maintenance
+
+Ocdex Lite is free and open source. [GitHub Sponsors](https://github.com/sponsors/pastorstephan-prog) supports compatibility checks, documentation, and releases. Sponsorship does not include individual setup support or guaranteed response times.
