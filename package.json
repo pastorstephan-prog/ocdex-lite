@@ -37,8 +37,8 @@
   "author": "Stephan",
   "license": "ISC",
   "devDependencies": {
-    "@openai/codex": "^0.144.6",
-    "playwright": "^1.61.1",
+    "@openai/codex": "^0.145.0",
+    "playwright": "^1.62.0",
     "vitepress": "^1.6.4",
     "ws": "^8.21.1"
   }
